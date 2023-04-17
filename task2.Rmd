@@ -1,0 +1,54 @@
+---
+title: "Task 2"
+output: 
+    pdf_document
+---
+
+
+**Task 2:** Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchical model. Monitor the convergence of the MCMC chains, using diagnostic plots and summary statistics to check for any issues.
+
+
+### Conditional posterior distributions
+
+1. $\mathbf{B}$:
+$$\begin{aligned}
+&\ \pi(\boldsymbol\beta_i\mid \boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma^2,\boldsymbol{Y}^\top)\\
+\propto&\ \exp\left[-\frac{1}{2}(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\frac{1}{2\sigma^2}\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right]\\
+\propto&\ \exp\left[-\frac{1}{2}\left((\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)-\frac{1}{\sigma^2}\sum_{j=1}^{m_i}(-2\boldsymbol\beta_i^\top(Y_{i,j}-\mathbf{X}_i^\top\boldsymbol\gamma)\mathbf Z_{i,j-1}+\boldsymbol\beta_i^\top(\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top)\boldsymbol\beta_i)\right)\right]\\
+\propto&\ \exp\left\{-\frac{1}{2}\left[\boldsymbol\beta_i^\top\left(\boldsymbol{\Sigma}^{-1}-\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)\boldsymbol\beta_i-2\boldsymbol\beta_i^\top\left(\boldsymbol{\Sigma}^{-1}\boldsymbol\mu-\frac{1}{\sigma^2}\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf{X}_i^\top\boldsymbol\gamma)\mathbf Z_{i,j-1}\right)\right]\right\}.
+\end{aligned}$$
+Thus we have
+$$\begin{aligned}\\
+&\ \boldsymbol\beta_i\mid (\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma^2,\boldsymbol{Y}^\top)\\
+\sim&\ N\left(\left(\boldsymbol{\Sigma}^{-1}-\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}\left(\boldsymbol{\Sigma}^{-1}\boldsymbol\mu-\frac{1}{\sigma^2}\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf{X}_i^\top\boldsymbol\gamma)\mathbf Z_{i,j-1}\right), \left(\boldsymbol{\Sigma}^{-1}-\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}\right).\end{aligned}$$
+2. $\boldsymbol{\mu}$:
+$$\begin{aligned}
+&\ \pi(\boldsymbol{\mu}\mid \mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma^2,\boldsymbol{Y}^\top)\\
+\propto&\ \exp\left[-\frac{1}{2}\left(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu\right)\right]\\
+\propto&\ \exp\left\{-\frac{1}{2}\left[\boldsymbol\mu-(n\boldsymbol\Sigma^{-1}+\boldsymbol V^{-1})^{-1}\boldsymbol\Sigma^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)\right]^\top(n\boldsymbol\Sigma^{-1}+\boldsymbol V^{-1})\left[\boldsymbol\mu-(n\boldsymbol\Sigma^{-1}+\boldsymbol V^{-1})^{-1}\boldsymbol\Sigma^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)\right]\right\}\\
+\propto&\ \exp\left\{-\frac{1}{2}\left[\boldsymbol\mu-\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)\right]^\top(\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1})^{-1}\left[\boldsymbol\mu-\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)\right]\right\}.
+\end{aligned}$$
+Thus we have
+$$\boldsymbol{\mu}\mid (\mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma^2,\boldsymbol{Y}^\top)\sim N\left(\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right), V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\right).$$
+3. $\boldsymbol{\Sigma}$:
+$$\begin{aligned}
+\pi(\boldsymbol{\Sigma}\mid\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma^2,\boldsymbol{Y}^\top)
+\propto&\ |\boldsymbol{\Sigma}|^{-(n+v+6)/2}\exp\left[-\frac{1}{2}\left(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})\right)\right]\\
+\propto&\ |\boldsymbol{\Sigma}|^{-(n+v+6)/2}\exp\left[-\frac{1}{2}\mathrm{tr}\left(\left(\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top\right)\boldsymbol{\Sigma}^{-1}\right)\right].
+\end{aligned}$$
+Thus we have
+$$\boldsymbol{\Sigma}\mid (\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma^2,\boldsymbol{Y}^\top)\sim \mathcal{W}^{-1}\left(\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top, n+\nu\right).$$
+4. $\boldsymbol\gamma$:
+$$\begin{aligned}
+&\ \pi(\boldsymbol\gamma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma^2,\boldsymbol{Y}^\top)\\
+\propto&\ \exp\left(-200\|\boldsymbol\gamma\|_2^2+\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right)\\
+\propto&\ \exp\left\{-\frac{1}{2}\left[\boldsymbol\gamma^\top\left(400\boldsymbol I-\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)\boldsymbol\gamma-2\boldsymbol\gamma^\top\frac{1}{\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-Y_{i,j})\mathbf{X}_i\right]\right\}.
+\end{aligned}$$
+Thus we have
+$$\begin{aligned}
+&\ \boldsymbol\gamma\mid (\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma^2,\boldsymbol{Y}^\top)\\
+\sim&\ N\left(\left(400\boldsymbol I-\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\left(\frac{1}{\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-Y_{i,j})\mathbf{X}_i\right),\left(400\boldsymbol I-\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\right).
+\end{aligned}$$
+5. $\sigma^2$:
+$$\pi(\sigma^2\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\boldsymbol{Y}^\top)\propto
+\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).$$
