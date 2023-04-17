@@ -9,14 +9,14 @@ Climate researchers are interested in modeling the hurricane trajectories to for
 
 
 $$Y_{i}(t+6) =\beta_{0,i}+\beta_{1,i}Y_{i}(t) + \beta_{2,i}\Delta_{i,1}(t)+
-\beta_{3,i}\Delta_{i,2}(t) +\beta_{4,i}\Delta_{i,3}(t)  + \mathbf{X}_i\gamma+ \epsilon_{i}(t)$$   
+\beta_{3,i}\Delta_{i,2}(t) +\beta_{4,i}\Delta_{i,3}(t)  + \mathbf{X}_i\mathcolor{red}{^\top}\gamma+ \epsilon_{i}(t)$$   
 where 
 
 $Y_{i}(t)$ the wind speed at time $t$ (i.e. 6 hours earlier),  
 
 $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ are the changes of latitude, longitude and wind speed between $t$ and $t+6$, 
 
-$\mathbf{X}_i = (x_{i,1},x_{i,2},x_{i,3})$\textcolor{red}{$^\top$} are covariates with fixed effect $\gamma$ \textcolor{red}{($\gamma$ should be a vector? with how many elements? Also I assume fixed effect means $\gamma$ does not depend on $i$)}, where $x_{i,1}$ be the month of year when the $i$-th hurricane started, $x_{i,2}$ be the calendar year of the $i$ hurricane, and $x_{i,3}$ be the type of the $i$-th hurricane. \textcolor{red}{(what values should $x_{i,1}$, $x_{i,2}$, and $x_{i,3}$ take? temporarily we assume $x_{i,1}$, $x_{i,2}$ are numeric variable and $\boldsymbol{x}_{i,3}=(x_{i,3},\ldots,x_{i,6})$ is categorical variable (5 categories, 4 dummy variables). we assume $\boldsymbol\gamma=(\gamma_1,\ldots,\gamma_6)\overset{i.i.d.}{\sim}N(0,0.05^2)$)} 
+$\mathbf{X}_i = (x_{i,1},x_{i,2},x_{i,3})$\textcolor{red}{$^\top$} are covariates with fixed effect $\gamma$ \textcolor{red}{($\gamma$ should be a vector? with how many elements? Also I assume fixed effect means $\gamma$ does not depend on $i$)}, where $x_{i,1}$ be the month of year when the $i$-th hurricane started, $x_{i,2}$ be the calendar year of the $i$ hurricane, and $x_{i,3}$ be the type of the $i$-th hurricane. \textcolor{red}{(what values should $x_{i,1}$, $x_{i,2}$, and $x_{i,3}$ take? temporarily we assume $x_{i,1}$, $x_{i,2}$ are numeric variable and $\boldsymbol{x}_{i,3}=(x_{i,3},\ldots,x_{i,6})^\top$ is categorical variable (5 categories, 4 dummy variables). we assume $\boldsymbol\gamma=(\gamma_1,\ldots,\gamma_6)^\top$, where the prior of $\gamma_i\overset{i.i.d.}{\sim}N(0,0.05^2)$)} 
 
 and $\epsilon_{i,t}$ follows a normal distributions with mean zero and variance $\sigma^2$, independent across $t$. 
 

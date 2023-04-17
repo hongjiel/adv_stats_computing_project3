@@ -29,7 +29,7 @@ $$\begin{aligned}
 \propto&\ \exp\left\{-\frac{1}{2}\left[\boldsymbol\mu-\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)\right]^\top(\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1})^{-1}\left[\boldsymbol\mu-\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)\right]\right\}.
 \end{aligned}$$
 Thus we have
-$$\boldsymbol{\mu}\mid (\mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma^2,\boldsymbol{Y}^\top)\sim N\left(\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right), V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\right).$$
+$$\boldsymbol{\mu}\mid (\mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma^2,\boldsymbol{Y}^\top)\sim N\left(\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right), \boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\right).$$
 3. $\boldsymbol{\Sigma}$:
 $$\begin{aligned}
 \pi(\boldsymbol{\Sigma}\mid\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma^2,\boldsymbol{Y}^\top)
