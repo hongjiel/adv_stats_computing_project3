@@ -1,0 +1,182 @@
+---
+title: "EDA"
+output: 
+    pdf_document
+---
+
+```{r include=FALSE, echo=FALSE}
+library(tidyverse)
+library(data.table)
+library(maps)
+```
+
+
+```{r}
+origin_df <- read.csv("hurrican703.csv")
+
+# identify some problems in the data wrangling part.
+# for visualization, we need to fix the problems first.
+dt <- 
+  origin_df %>% 
+  mutate(
+    # 2 hurricanes with the name ALICE.1954
+    ID = ifelse(ID == "ALICE.1954" & Month == "June", "ALICE.1954(1)", ID),
+    ID = ifelse(ID == "ALICE.1954", "ALICE.1954(2)", ID),
+    # 4 hurricanes with the name SUBTROP:UNNAMED.1974
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "June", "SUBTROP:UNNAMED.1974(1)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "July", "SUBTROP:UNNAMED.1974(2)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "August", "SUBTROP:UNNAMED.1974(3)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974", "SUBTROP:UNNAMED.1974(4)", ID),
+    # 2 hurricanes with the name SUBTROP:UNNAMED.1976
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1976" & Month == "May", "SUBTROP:UNNAMED.1976(1)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1976", "SUBTROP:UNNAMED.1976(2)", ID)
+  )
+```
+
+### Given code for visualization
+
+```{r}
+ggplot(data=dt, aes(x = Longitude, y = Latitude)) + 
+  stat_summary_2d(data = dt, aes(x = Longitude, y = Latitude, z = Wind.kt), fun = median, binwidth = c(1, 1), show.legend = TRUE)
+dt <- as.data.table(dt)
+summary(dt)
+```
+
+```{r}
+map <- ggplot(data = dt, aes(x = Longitude, y = Latitude)) + 
+  geom_polygon(data = map_data(map = 'world'), aes(x = long, y = lat, group = group))
+map +
+  stat_summary_2d(data = dt, aes(x = Longitude, y = Latitude, z = dt$Wind.kt), fun = median, binwidth = c(1, 1), show.legend = TRUE, alpha = 0.75) + 
+  ggtitle(paste0("Atlantic Windstorm mean knot"))
+```
+
+```{r}
+map <- ggplot(dt, aes(x = Longitude, y = Latitude, group = ID)) + 
+  geom_polygon(data = map_data("world"), 
+               aes(x = long, y = lat, group = group), 
+               fill = "gray25", colour = "gray10", size = 0.2) + 
+  geom_path(data = dt, aes(group = ID, colour = Wind.kt), size = 0.5) + 
+  xlim(-138, -20) + ylim(3, 55) + 
+  labs(x = "", y = "", colour = "Wind \n(knots)") + 
+  theme(panel.background = element_rect(fill = "gray10", colour = "gray30"),
+        axis.text.x = element_blank(), axis.text.y = element_blank(), 
+        axis.ticks = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+seasonrange <- paste(range(dt[, Season]), collapse=" - ")
+
+map + ggtitle(paste("Atlantic named Windstorm Trajectories (", 
+                     seasonrange, ")\n")) 
+```
+
+```{r}
+mapMonth <- map + facet_wrap(~ Month) +
+  ggtitle(paste("Atlantic named Windstorm Trajectories by Month (", 
+                 seasonrange, ")\n")) 
+mapMonth
+```
+
+### Data wrangling
+
+```{r}
+hurricane_df <- origin_df %>% 
+  mutate(
+    Month = as.factor(Month), # April-January
+    Nature = as.factor(Nature), # TS,ET,DS,SS,NR
+    # note: one hurricane can have multiple natures throughout its life
+    time = gsub("[()]", "", time),
+    time = paste0(ifelse(substr(time, 1, 2) > 23, "19", "20"), time),
+    time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S"),
+    hour = substr(time, 12, 19)
+  ) %>% 
+  # remove data not at six-hour time intervals. (613 observations)
+  filter(hour %in% c("00:00:00", "06:00:00", "12:00:00", "18:00:00")) %>% 
+  select(-hour)
+
+# remove hurricanes that has only 1 (<2) observations (change the threshold if you wish)
+few_id <- hurricane_df %>% 
+  group_by(ID) %>% 
+  summarize(obs = n()) %>% 
+  filter(obs < 2) %>% 
+  .$ID
+few_id
+hurricane_df <- hurricane_df %>% filter(!(ID %in% few_id)) # remove 2 hurricanes
+
+# check if any missing hours (e.g., 0 directly to 12, missing 6)
+issue_id <- hurricane_df %>% 
+  group_by(ID) %>% 
+  summarize(
+    obs = n(),
+    obs2 = as.integer(difftime(max(time), min(time), units = "hours"))/6 + 1,
+    diff = obs - obs2
+  ) %>% 
+  filter(abs(diff) > 0.167) %>% # some = 1/6. may due to DST time-shift
+  .$ID
+issue_id
+
+# no such issue. but identify a new issue:
+# several different hurricanes with the same name. (3 such hurricane names)
+# e.g.,
+# https://en.wikipedia.org/wiki/Hurricane_Alice_(December_1954)
+# https://en.wikipedia.org/wiki/Hurricane_Alice_(June_1954)
+origin_df %>% 
+  filter(ID %in% issue_id) %>% 
+  select(ID, Month, time)
+
+# manually correct those data
+hurricane_df <- 
+  hurricane_df %>% 
+  mutate(
+    # 2 hurricanes with the name ALICE.1954
+    ID = ifelse(ID == "ALICE.1954" & Month == "June", "ALICE.1954(1)", ID),
+    ID = ifelse(ID == "ALICE.1954", "ALICE.1954(2)", ID),
+    # 4 hurricanes with the name SUBTROP:UNNAMED.1974
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "June", "SUBTROP:UNNAMED.1974(1)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "July", "SUBTROP:UNNAMED.1974(2)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "August", "SUBTROP:UNNAMED.1974(3)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974", "SUBTROP:UNNAMED.1974(4)", ID),
+    # 2 hurricanes with the name SUBTROP:UNNAMED.1976
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1976" & Month == "May", "SUBTROP:UNNAMED.1976(1)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1976", "SUBTROP:UNNAMED.1976(2)", ID)
+  )
+
+# check again
+issue_id <- hurricane_df %>% 
+  group_by(ID) %>% 
+  summarize(
+    obs = n(),
+    obs2 = as.integer(difftime(max(time), min(time), units = "hours"))/6 + 1,
+    diff = obs - obs2
+  ) %>% 
+  filter(abs(diff) > 0.167) %>% 
+  .$ID
+issue_id # no such problem
+
+summary(hurricane_df) # 21693 observations, 705 hurricanes
+
+diff_df <-
+  hurricane_df %>% 
+  group_by(ID) %>% 
+  mutate(
+    lat_diff = lead(Latitude) - Latitude,
+    long_diff = lead(Longitude) - Longitude,
+    wind_diff = lead(Wind.kt) - Wind.kt,
+    time_j = round(difftime(time, min(time), units = "hours")/6) %>% as.integer
+  ) %>% 
+  select(ID, lat_diff, long_diff, wind_diff, time_j)
+
+summary(diff_df)
+```
+
+
+```{r}
+# data partition
+id <- hurricane_df %>% select(ID) %>% unique %>% as.vector %>% unlist
+set.seed(1)
+index <- sample(1:length(id), size = 0.8*length(id))
+training_id <- id[index]
+test_id <- id[-index]
+Training <- hurricane_df %>% filter(ID %in% training_id)
+Test <- hurricane_df %>% filter(ID %in% test_id)
+```
+
