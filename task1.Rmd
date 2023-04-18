@@ -9,22 +9,22 @@ Climate researchers are interested in modeling the hurricane trajectories to for
 
 
 $$Y_{i}(t+6) =\beta_{0,i}+\beta_{1,i}Y_{i}(t) + \beta_{2,i}\Delta_{i,1}(t)+
-\beta_{3,i}\Delta_{i,2}(t) +\beta_{4,i}\Delta_{i,3}(t)  + \mathbf{X}_i\mathcolor{red}{^\top}\gamma+ \epsilon_{i}(t)$$   
+\beta_{3,i}\Delta_{i,2}(t) +\beta_{4,i}\Delta_{i,3}(t)  + \mathbf{X}_i\mathcolor{red}{^\top\boldsymbol\gamma}+ \epsilon_{i}(t)$$   
 where 
 
 $Y_{i}(t)$ the wind speed at time $t$ (i.e. 6 hours earlier),  
 
 $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ are the changes of latitude, longitude and wind speed between $t$ and $t+6$, 
 
-$\mathbf{X}_i = (x_{i,1},x_{i,2},x_{i,3})$\textcolor{red}{$^\top$} are covariates with fixed effect $\gamma$ \textcolor{red}{($\gamma$ should be a vector? with how many elements? Also I assume fixed effect means $\gamma$ does not depend on $i$)}, where $x_{i,1}$ be the month of year when the $i$-th hurricane started, $x_{i,2}$ be the calendar year of the $i$ hurricane, and $x_{i,3}$ be the type of the $i$-th hurricane. \textcolor{red}{(what values should $x_{i,1}$, $x_{i,2}$, and $x_{i,3}$ take? temporarily we assume $x_{i,1}$, $x_{i,2}$ are numeric variable and $\boldsymbol{x}_{i,3}=(x_{i,3},\ldots,x_{i,6})^\top$ is categorical variable (5 categories, 4 dummy variables). we assume $\boldsymbol\gamma=(\gamma_1,\ldots,\gamma_6)^\top$, where the prior of $\gamma_i\overset{i.i.d.}{\sim}N(0,0.05^2)$)} 
+$\mathbf{X}_i = (x_{i,1},x_{i,2},x_{i,3})$\textcolor{red}{$^\top$} are covariates with fixed effect $\mathcolor{red}{\boldsymbol\gamma}$ \textcolor{blue}{($\boldsymbol\gamma$ is a vector.)}, where $x_{i,1}$ be the month of year when the $i$-th hurricane started, $x_{i,2}$ be the calendar year of the $i$ hurricane, and $x_{i,3}$ be the type of the $i$-th hurricane. \textcolor{blue}{(We assume $x_{i,2}$ are numeric variable, $\mathbf{x}_{i,1}=(x_{i,1,4},\ldots,x_{i,12})^\top$ is categorical variable (April-January, January as reference category, 10 categories, 9 dummy variables) and $\mathbf{x}_{i,3}=(x_{i,3,1},\ldots,x_{i,3,4})^\top$ is categorical variable (5 categories, 4 dummy variables). we assume $\boldsymbol\gamma=(\gamma_{1,4},\ldots,\gamma_{1,12},\gamma_{2},\gamma_{3,1},\ldots,\gamma_{3,4})^\top$, where the prior of $\boldsymbol\gamma\sim N(\boldsymbol 0,0.05^2\boldsymbol I_{14})$)} 
 
 and $\epsilon_{i,t}$ follows a normal distributions with mean zero and variance $\sigma^2$, independent across $t$. 
 
 
-In the model,  $\boldsymbol{\beta}_{i} =  (\beta_{0,i},\beta_{1,i},...,\beta_{7,i})$ \textcolor{red}{($\beta_{4,i}$?)} are the random coefficients associated the $i$th hurricane, we assume that 
+In the model,  $\boldsymbol{\beta}_{i} =  (\beta_{0,i},\beta_{1,i},...,\beta_{\mathcolor{red}{4},i})$ are the random coefficients associated the $i$th hurricane, we assume that 
 
 $$\boldsymbol{\beta}_{i} \sim N(\boldsymbol{\mu}, \boldsymbol{\Sigma})$$
-follows a multivariate normal distributions with mean $\boldsymbol{\beta}$ and covariance matrix $\Sigma$. \textcolor{red}{(with mean $\boldsymbol{\mu}$ and covariance matrix $\boldsymbol{\Sigma}$?)}
+follows a multivariate normal distributions with mean $\mathcolor{red}{\boldsymbol{\mu}}$ and covariance matrix $\boldsymbol\Sigma$.
 
 
 \paragraph{Prior distributions}
@@ -33,14 +33,14 @@ follows a multivariate normal distributions with mean $\boldsymbol{\beta}$ and c
 
 2. $\boldsymbol{\Sigma}$: an inverse-Wishart distribution with degrees of freedom $\nu$ and scale matrix $\boldsymbol{S}$, reflecting the prior knowledge that the covariance matrix of the coefficients should be positive definite and have some structure. The degrees of freedom $\nu$ can be set to a small value (e.g., 5) to reflect a relatively weak prior, while the scale matrix $\boldsymbol{S}$ can be set to a diagonal matrix with large variances on the diagonal and small covariances off-diagonal, reflecting the prior knowledge that the covariance matrix should be diagonal or nearly diagonal.
 
-3. All the fixed effects $\gamma \sim N(0, 0.05^2)$ \textcolor{red}{(if $\boldsymbol{\gamma}$ is a vector, are its elements i.i.d.?)}
+3. All the fixed effects $\gamma \sim N(0, 0.05^2)$
 
 4. $\sigma$: a half-Cauchy distribution with scale parameter 10, reflecting the prior knowledge that the residual variance should be positive and large enough to account for any unexplained variability in the wind speed data.
 
 
 \newpage
 
-**Task 1:** Let $\mathbf{B}= (\boldsymbol{\beta}_{1}^\top,...,\boldsymbol{\beta}_{n}^\top)^\top$, derive the posterior distribution of the parameters $\Theta=(\mathbf{B}^\top,\boldsymbol{\mu}^\top,\sigma^2, \Sigma)$. \textcolor{red}{(should $\gamma$ be also included? Since in Task 3 we are required to compute posterior summaries and 95\% credible intervals of $\gamma$)}
+**Task 1:** Let $\mathbf{B}= (\boldsymbol{\beta}_{1}^\top,...,\boldsymbol{\beta}_{n}^\top)^\top$, derive the posterior distribution of the parameters $\Theta=(\mathbf{B}^\top,\boldsymbol{\mu}^\top,\sigma^2, \boldsymbol\Sigma,\mathcolor{red}{\boldsymbol\gamma^\top})$.
 
 
 ### Prior distribution
@@ -54,7 +54,7 @@ $$\begin{aligned}
 =&\ \prod_{i=1}^n\left[(2\pi)^{-5/2}|\boldsymbol{\Sigma}|^{-1/2}\exp\left(-\frac{1}{2}(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)\right)\right] && \boldsymbol\beta_i\sim N(\boldsymbol{\mu},\boldsymbol{\Sigma})\\
 &\ \times(2\pi)^{-5/2}|\boldsymbol{V}|^{-1/2}\exp\left(-\frac{1}{2}\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu\right) && \boldsymbol{\mu}\sim N(\boldsymbol{0},\boldsymbol{V})\\
 &\ \times\frac{|\boldsymbol{S}|^{\nu/2}}{2^{5\nu/2}\Gamma_5(\nu/2)}|\boldsymbol{\Sigma}|^{-(v+6)/2}\exp\left(-\frac{1}{2}\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})\right) && \boldsymbol{\Sigma}\sim \mathcal{W}^{-1}(\boldsymbol{S},\nu)\\
-&\ \times(2\pi)^{-6/2}\cdot20^6\cdot\exp\left(-\frac{1}{2}\cdot20^2\cdot\boldsymbol\gamma^\top\boldsymbol\gamma\right) && \boldsymbol\gamma\sim N(\boldsymbol 0,0.05^2\boldsymbol I)\\
+&\ \times(2\pi)^{-14/2}\cdot20^{14}\cdot\exp\left(-\frac{1}{2}\cdot20^2\cdot\boldsymbol\gamma^\top\boldsymbol\gamma\right) && \boldsymbol\gamma\sim N(\boldsymbol 0,0.05^2\boldsymbol I_{14})\\
 &\ \times\frac{2}{10\pi}\cdot\frac{I(\sigma>0)}{1+(\sigma/10)^2} && \sigma\sim \text{half-Cauchy}(0,10)\\
 \propto &\ |\boldsymbol{\Sigma}|^{-n/2}\exp\left(-\frac{1}{2}\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)\right)\times\exp\left(-\frac{1}{2}\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu\right)\\
 &\ \times|\boldsymbol{\Sigma}|^{-(v+6)/2}\exp\left(-\frac{1}{2}\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})\right)\times \exp\left(-\frac{1}{2}\cdot400\boldsymbol\gamma^\top\boldsymbol\gamma\right)\times\frac{I(\sigma>0)}{1+(\sigma/10)^2}\\
