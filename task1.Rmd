@@ -14,7 +14,7 @@ where
 
 $Y_{i}(t)$ the wind speed at time $t$ (i.e. 6 hours earlier),  
 
-$\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ are the changes of latitude, longitude and wind speed between $t$ and $t+6$, 
+$\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ are the changes of latitude, longitude and wind speed \textcolor{red}{between $t-6$ and $t$}, 
 
 $\mathbf{X}_i = (x_{i,1},x_{i,2},x_{i,3})$\textcolor{red}{$^\top$} are covariates with fixed effect $\mathcolor{red}{\boldsymbol\gamma}$ \textcolor{blue}{($\boldsymbol\gamma$ is a vector.)}, where $x_{i,1}$ be the month of year when the $i$-th hurricane started, $x_{i,2}$ be the calendar year of the $i$ hurricane, and $x_{i,3}$ be the type of the $i$-th hurricane. \textcolor{blue}{(We assume $x_{i,2}$ are numeric variable, $\mathbf{x}_{i,1}=(x_{i,1,4},\ldots,x_{i,12})^\top$ is categorical variable (April-January, January as reference category, 10 categories, 9 dummy variables) and $\mathbf{x}_{i,3}=(x_{i,3,1},\ldots,x_{i,3,4})^\top$ is categorical variable (5 categories, 4 dummy variables). we assume $\boldsymbol\gamma=(\gamma_{1,4},\ldots,\gamma_{1,12},\gamma_{2},\gamma_{3,1},\ldots,\gamma_{3,4})^\top$, where the prior of $\boldsymbol\gamma\sim N(\boldsymbol 0,0.05^2\boldsymbol I_{14})$)} 
 
@@ -63,7 +63,7 @@ $$\begin{aligned}
 
 ### Likelihood (or density?)
 
-Let $m_i$ denote the number of observations for the $i$-th hurricane, excluding the first observation. We denote the wind speed data for the $i$-th hurricane (excluding the first observation) as $\boldsymbol{Y}_i=(Y_{i,1},\ldots Y_{i,m_i})^\top$, where $Y_{i,k}$ represents the wind speed at time $t_{0,i}+6k$, and $t_{0,i}$ is the time of the first observation for the $i$-th hurricane. We denote the wind speed data for all hurricanes as $\boldsymbol{Y}=(\boldsymbol{Y}_1^\top,\boldsymbol{Y}_2^\top,\ldots,\boldsymbol{Y}_n^\top)^\top$. We denote $\Delta_{i,k,1}$, $\Delta_{i,k,2}$ and $\Delta_{i,k,3}$ as $\Delta_{i,1}(t_{0,i}+6k)$, $\Delta_{i,2}(t_{0,i}+6k)$ and $\Delta_{i,3}(t_{0,i}+6k)$, and denote $\mathbf Z_{i,k}=(1,Y_{i,k},\Delta_{i,k,1},\Delta_{i,k,2},\Delta_{i,k,3})^\top$. (\textcolor{blue}{$\mathbf Z_{i,k}$ contains $Y_{i,k}$, the previous observation of wind speed})
+Let $m_i$ denote the number of observations for the $i$-th hurricane, excluding the first \textcolor{red}{and second} observation. We denote the wind speed data for the $i$-th hurricane (excluding the first \textcolor{red}{and second} observation) as $\boldsymbol{Y}_i=(Y_{i,1},\ldots Y_{i,m_i})^\top$, where $Y_{i,k}$ represents the wind speed at time $t_{0,i}+6k$, and $t_{0,i}$ is the time of the \textcolor{red}{second} observation for the $i$-th hurricane. We denote the wind speed data for all hurricanes as $\boldsymbol{Y}=(\boldsymbol{Y}_1^\top,\boldsymbol{Y}_2^\top,\ldots,\boldsymbol{Y}_n^\top)^\top$. We denote $\Delta_{i,k,1}$, $\Delta_{i,k,2}$ and $\Delta_{i,k,3}$ as $\Delta_{i,1}(t_{0,i}+6k)$, $\Delta_{i,2}(t_{0,i}+6k)$ and $\Delta_{i,3}(t_{0,i}+6k)$, and denote $\mathbf Z_{i,k}=(1,Y_{i,k},\Delta_{i,k,1},\Delta_{i,k,2},\Delta_{i,k,3})^\top$. (\textcolor{blue}{$\mathbf Z_{i,k}$ contains $Y_{i,k}$, the previous observation of wind speed})
 
 Given that
 $$Y_{i,j}\mid (Y_{i,j-1},\boldsymbol\beta_i^\top,\boldsymbol\gamma^\top,\sigma)\sim N(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i + \mathbf{X}_i^\top\boldsymbol\gamma,\sigma^2),\quad\forall j=1,\cdots,m_i$$
