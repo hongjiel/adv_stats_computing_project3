@@ -63,7 +63,7 @@ $$\begin{aligned}
 
 ### Likelihood (or density?)
 
-Let $m_i$ denote the number of observations for the $i$-th hurricane, excluding the first \textcolor{red}{and second} observation. We denote the wind speed data for the $i$-th hurricane (excluding the first \textcolor{red}{and second} observation) as $\boldsymbol{Y}_i=(Y_{i,1},\ldots Y_{i,m_i})^\top$, where $Y_{i,k}$ represents the wind speed at time $t_{0,i}+6k$, and $t_{0,i}$ is the time of the \textcolor{red}{second} observation for the $i$-th hurricane. We denote the wind speed data for all hurricanes as $\boldsymbol{Y}=(\boldsymbol{Y}_1^\top,\boldsymbol{Y}_2^\top,\ldots,\boldsymbol{Y}_n^\top)^\top$. We denote $\Delta_{i,k,1}$, $\Delta_{i,k,2}$ and $\Delta_{i,k,3}$ as $\Delta_{i,1}(t_{0,i}+6k)$, $\Delta_{i,2}(t_{0,i}+6k)$ and $\Delta_{i,3}(t_{0,i}+6k)$, and denote $\mathbf Z_{i,k}=(1,Y_{i,k},\Delta_{i,k,1},\Delta_{i,k,2},\Delta_{i,k,3})^\top$. (\textcolor{blue}{$\mathbf Z_{i,k}$ contains $Y_{i,k}$, the previous observation of wind speed})
+Let $m_i$ denote the number of observations for the $i$-th hurricane, excluding the first \textcolor{red}{and second} observations. We denote the wind speed data for the $i$-th hurricane (excluding the first \textcolor{red}{and second} observations) as $\boldsymbol{Y}_i=(Y_{i,1},\ldots Y_{i,m_i})^\top$, where $Y_{i,k}$ represents the wind speed at time $t_{0,i}+6k$, and $t_{0,i}$ is the time of the \textcolor{red}{second} observation for the $i$-th hurricane. We denote the wind speed data for all hurricanes as $\boldsymbol{Y}=(\boldsymbol{Y}_1^\top,\boldsymbol{Y}_2^\top,\ldots,\boldsymbol{Y}_n^\top)^\top$. We denote $\Delta_{i,k,1}$, $\Delta_{i,k,2}$ and $\Delta_{i,k,3}$ as $\Delta_{i,1}(t_{0,i}+6k)$, $\Delta_{i,2}(t_{0,i}+6k)$ and $\Delta_{i,3}(t_{0,i}+6k)$, and denote $\mathbf Z_{i,k}=(1,Y_{i,k},\Delta_{i,k,1},\Delta_{i,k,2},\Delta_{i,k,3})^\top$. (\textcolor{blue}{$\mathbf Z_{i,k}$ contains $Y_{i,k}$, the previous observation of wind speed})
 
 Given that
 $$Y_{i,j}\mid (Y_{i,j-1},\boldsymbol\beta_i^\top,\boldsymbol\gamma^\top,\sigma)\sim N(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i + \mathbf{X}_i^\top\boldsymbol\gamma,\sigma^2),\quad\forall j=1,\cdots,m_i$$
@@ -81,5 +81,5 @@ $$\begin{aligned}
 \pi(\Theta\mid \boldsymbol{Y}^\top)
 \propto &\ f(\boldsymbol{Y}^\top\mid\Theta)\pi(\Theta)\\
 \propto &\ \frac{|\boldsymbol{\Sigma}|^{-(n+v+6)/2}}{1+(\sigma/10)^2}\exp\left[-\frac{1}{2}\left(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu+\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})+400\|\boldsymbol\gamma\|_2^2\right)\right]\\
-&\ \times \sigma^{-\sum_{i=1}^n m_i}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).
+&\ \times I(\sigma>0)\sigma^{-\sum_{i=1}^n m_i}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).
 \end{aligned}$$

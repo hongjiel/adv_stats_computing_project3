@@ -51,4 +51,4 @@ $$\begin{aligned}
 \end{aligned}$$
 5. $\sigma$:
 $$\pi(\sigma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\boldsymbol{Y}^\top)\propto
-\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).$$
+I(\sigma>0)\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).$$
