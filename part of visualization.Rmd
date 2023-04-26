@@ -7,6 +7,9 @@ output:
 ```{r include=FALSE, echo=FALSE}
 library(MASS)
 library(tidyverse)
+
+library(ggplot2)
+library(gridExtra)
 ```
 
 ### Data preprocessing (same as EDA)
@@ -243,6 +246,8 @@ plot(gamma_list[,1], type = "l") # e.g. plot gamma1 (year)
 plot(mu_list[,5], type = "l") # plot mu5 (wind_diff)
 plot(sigma_list, type = "l") # plot sigma
 ```
+
+
 Visualization for beta
 ```{r}
 beta_list_list <- vector(mode = "list", length = ncol(beta_list)/5)
@@ -313,26 +318,55 @@ grid.arrange(grobs = plot_list, ncol = 2)
 ```
 
 
-### Burn in (based on resulting plots)
 
-`xxx_sample` will be used for doing inference (estimates, CI, hypothesis test) and making predictions.
-
-Please select "burn in" numbers based on all time series plots and autocorrelation plots.
-
+Visualization for Sigma
 ```{r}
-burn <- 500 # burn in the MC chains. change this based on the resulting plots
-index <- (burn + 1):length(res) # index of useful samples (used for estimates & CIs)
-beta_sample <- beta_list[index,]
-mu_sample <- mu_list[index,]
-Sigma_sample <- Sigma_list[index,] # may be useless
-gamma_sample <- gamma_list[index,]
-sigma_sample <- sigma_list[index] # may be useless
-```
 
-### Acceptance rate for $\sigma$ samples
+# Define the number of iterations
+n_iter <- iternum
 
-30% - 60% is good. if not, please change `a` in random walk. If really need to change `a`, you need to rerun the MCMC function and update the results saved in the files.
+# Define the number of burn-in iterations
+n_burnin <- 5000
 
-```{r}
-length(unique(sigma_list[index]))/length(sigma_list[index])
+# Define the number of Sigma parameters
+n_sigma <- 5
+
+# Define the names of the Sigma parameters
+sigma_names <- paste("sigma", 1:n_sigma, 1:n_sigma, sep = "_")
+
+
+# Create a list to store the plot objects
+plot_list <- list()
+
+# Loop over each iteration
+for (i in 1:n_iter) {
+  # Extract the Sigma parameters for the current iteration
+  sigma_params <- Sigma_list[i, ]
+  
+  # Convert sigma_params to a matrix
+  sigma_matrix <- matrix(sigma_params, n_sigma, n_sigma)
+  sigma_matrix <- matrix(as.numeric(as.matrix(sigma_params)), n_sigma, n_sigma)
+  
+  sigma_df <- data.frame(row = rep(1:nrow(sigma_matrix), ncol(sigma_matrix)), 
+                         col = rep(1:ncol(sigma_matrix), each = nrow(sigma_matrix)),
+                         value = c(sigma_matrix))
+  
+  # Create the plot object
+  p <- ggplot(sigma_df, aes(x = col, y = row, fill = value)) +
+    geom_tile() +
+    scale_fill_gradientn(colors = c("gray40", "white", "black"), na.value = "grey70") +
+    scale_x_reverse() +
+    theme_minimal() +
+    theme(axis.title = element_blank(), axis.text = element_blank(), panel.grid = element_blank()) +
+    geom_text(aes(label = round(value, 2)), size = 3, color = "white")
+  
+  # Save the plot as a PNG file
+  ggsave(output_files[i], p, width = 5, height = 5, dpi = 300)
+  
+  # Add the plot object to the list
+  plot_list[[i]] <- p
+}
+# Combine all the plots into a single plot
+grid.arrange(grobs = plot_list[6000:6010], ncol = 2)
+
 ```
