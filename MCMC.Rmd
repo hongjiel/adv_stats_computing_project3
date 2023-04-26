@@ -34,9 +34,9 @@ few_id <- hurricane_df %>%
   summarize(obs = n()) %>% 
   filter(obs < 3) %>% 
   .$ID
-hurricane_df <- hurricane_df %>% filter(!(ID %in% few_id)) # remove 2 hurricanes
+hurricane_df <- hurricane_df %>% filter(!(ID %in% few_id)) # remove 3 hurricanes
 
-# manually correct those data
+# manually correct hurricanes that have same names but are actually different
 hurricane_df <- 
   hurricane_df %>% 
   mutate(
@@ -52,17 +52,6 @@ hurricane_df <-
     ID = ifelse(ID == "SUBTROP:UNNAMED.1976" & Month == "May", "SUBTROP:UNNAMED.1976(1)", ID),
     ID = ifelse(ID == "SUBTROP:UNNAMED.1976", "SUBTROP:UNNAMED.1976(2)", ID)
   )
-
-diff_df <-
-  hurricane_df %>% 
-  group_by(ID) %>% 
-  mutate(
-    lat_diff = lead(Latitude) - Latitude,
-    long_diff = lead(Longitude) - Longitude,
-    wind_diff = lead(Wind.kt) - Wind.kt,
-    time_j = round(difftime(time, min(time), units = "hours")/6) %>% as.integer
-  ) %>% 
-  dplyr::select(ID, lat_diff, long_diff, wind_diff, time_j)
 ```
 
 ### Data partition (may be useless.)
@@ -116,20 +105,6 @@ m <- Training %>%
 ### MCMC
 
 ```{r}
-# constants
-nu <- 5 # suggested
-V <- diag(5) # try other
-S <- diag(5) # try other
-
-# initial values of variables (please try other)
-B0 <- matrix(rep(0, 5*n), ncol = n, nrow = 5) # each column is beta_i
-mu0 <- rep(0, 5)
-Sigma0 <- diag(5)
-gamma0 <- rep(0, 14)
-sigma0 <- 10
-
-
-
 B_sample <- function(mu, Sigma, gamma, sigma) {
   Sigma.inv <- solve(Sigma)
   B_mean_cov <- function(i) {
@@ -141,8 +116,6 @@ B_sample <- function(mu, Sigma, gamma, sigma) {
   B <- sapply(mean_cov_list, function(x) {mvrnorm(mu = x$mean, Sigma = x$cov)})
   return(B)
 }
-# helper function for sampling B
-
 
 mu_sample <- function(B, Sigma) {
   cov <- V %*% solve(n*V + Sigma)
@@ -152,12 +125,12 @@ mu_sample <- function(B, Sigma) {
 }
 
 Sigma_sample <- function(B, mu) {
-  Sigma.inv = rWishart(n = 1, Sigma = S + (B - mu) %*% t(B - mu), df = n + nu)[,,]
-  Sigma = solve(Sigma.inv)
+  Sigma.inv <- rWishart(n = 1, Sigma = S + (B - mu) %*% t(B - mu), df = n + nu)[,,]
+  Sigma <- solve(Sigma.inv)
   return(Sigma)
 }
 
-gamma_sample <- function(B, sigma){
+gamma_sample <- function(B, sigma) {
   X_trans <- sqrt(m) * X
   cov <- solve(400*diag(14) + 1/sigma^2 * t(X_trans) %*% X_trans)
   total <- rowSums(sapply(1:n, function(i) sum(Z[[i]] %*% B[,i] - Y[[i]]) * X[i,]))
@@ -166,13 +139,22 @@ gamma_sample <- function(B, sigma){
   return(gamma)
 }
 
-# MH algorithm, not finished
-sigma_sample <- function(B, gamma) {
-  ####
+# MH algorithm (random walk)
+sigma_sample <- function(sigma, B, gamma, a) {
+  sigma_new <- sigma + (runif(1) - 0.5) * 2 * a # candidate sigma
+  if (sigma_new <= 0) {
+    return(sigma)
+  }
+  RSS <- sum(sapply(1:n, function(i) sum((Y[[i]] - Z[[i]] %*% B[,i] - (X[i,] %*% gamma)[,])^2)))
+  log_kernal_ratio <- -sum(m) * log(sigma_new/sigma) +
+    log(1 + (sigma/10)^2) - log(1 + (sigma_new/10)^2) -
+    0.5 * (1/sigma_new^2 - 1/sigma^2) * RSS
+  log_prob <- min(0, log_kernal_ratio)
+  sigma <- ifelse(log_prob > log(runif(1)), sigma_new, sigma)
   return(sigma)
 }
 
-MCMC <- function(B0, mu0, Sigma0, gamma0, sigma0, iter = 100) {
+MCMC <- function(B0, mu0, Sigma0, gamma0, sigma0, a, iter) {
   B <- B0
   mu <- mu0
   Sigma <- Sigma0
@@ -184,20 +166,104 @@ MCMC <- function(B0, mu0, Sigma0, gamma0, sigma0, iter = 100) {
     mu <- mu_sample(B, Sigma)
     Sigma <- Sigma_sample(B, mu)
     gamma <- gamma_sample(B, sigma)
-    # sigma <- sigma_sample(B, gamma)
+    sigma <- sigma_sample(sigma, B, gamma, a)
     res[[i]] <- list(B = B, mu = mu, Sigma = Sigma, gamma = gamma, sigma = sigma)
   }
   return(res)
 }
-
-set.seed(1)
-res <- MCMC(B0, mu0, Sigma0, gamma0, sigma0, iter = 100) # try 100 iterations
-B_list <- t(mapply(function(x) x$B, res))
-mu_list <- t(mapply(function(x) x$mu, res))
-colnames(mu_list) <- colnames(Z[[1]])
-Sigma_list <- t(mapply(function(x) x$Sigma, res))
-gamma_list <- t(mapply(function(x) x$gamma, res))
-sigma_list <- t(mapply(function(x) x$sigma, res))
-plot(gamma_list[,1], type = "l") # try plotting gamma_year
 ```
 
+### Apply MCMC on training data
+
+1. Please select appropriate $\boldsymbol V$ and $\boldsymbol S$ values.
+2. Please select appropriate starting values for parameters, especially $\mathbf{B}$.
+3. You can save the results `xxx_list` as csv files or otherwise. Note that we need to find the answers to the above 2 problems and also the following questions to make sure that we won't make any updates for these saved data:
+
+* Should we apply MCMC on training hurricanes or all hurricanes? (in other words, should we partition the data into training and test data?) This relies on whether we hope to make predictions only on test hurricanes or on hurricanes used for MCMC.
+* Given that samples of $\mathbf{B}$ is a 10000*2815 matrix, and we only use $\mathbf{B}$ for predictions on hurricanes used for MCMC, we can decide which hurricanes we are gonna predict (e.g., hurricanes having appropriate number of observations, famous hurricanes, hurricanes of different natures, years, months), and only save the samples of corresponding $\boldsymbol\beta_i$'s.
+* We need to run the MCMC function and save the results (`xxx_list`) after we solve the above 3 problems. Then we need to check whether the `a` in the random walk for sampling $\sigma$ is appropriate. (acceptance rate 30% - 60%, see far below) If not, we need to change `a` and regenerate the results.
+
+estimated running time: 10 mins for 10,000 iterations
+
+```{r}
+# constants
+nu <- 5 # suggested
+V <- diag(5) # can try other. see requirement
+S <- diag(5) # can try other. see requirement
+
+# initial values of variables (please try other)
+B0 <- matrix(rep(0, 5*n), ncol = n, nrow = 5) # each column is beta_i
+mu0 <- rep(0, 5)
+Sigma0 <- diag(5)
+gamma0 <- rep(0, 14)
+sigma0 <- 10
+
+set.seed(1)
+res <- MCMC(B0, mu0, Sigma0, gamma0, sigma0, a = 0.12, iter = 10000) # try larger values
+
+# B. beta_i_j: i: ith hurricane, j: 1-5
+B_list <- t(mapply(function(x) x$B, res))
+B_names <- apply(expand.grid(0:4, 1:n), 1,
+                 function(x) paste("beta", x[2], x[1], sep = "_"))
+colnames(B_list) <- B_names
+# mu
+mu_list <- t(mapply(function(x) x$mu, res))
+colnames(mu_list) <- colnames(Z[[1]])
+# Sigma (symmetric)
+Sigma_list <- t(mapply(function(x) x$Sigma, res))
+Sigma_names <- apply(expand.grid(1:5, 1:5), 1,
+                     function(x) paste("Sigma_", x[2], x[1], sep = ""))
+colnames(Sigma_list) <- Sigma_names
+# gamma (month ref: January, nature ref: DS)
+gamma_list <- t(mapply(function(x) x$gamma, res))
+# sigma
+sigma_list <- mapply(function(x) x$sigma, res)
+
+write.csv(B_list[,1:100], file = "./data/B_list_partial.csv", row.names = FALSE) # e.g. first 20 hurricanes
+write.csv(mu_list, file = "./data/mu_list.csv", row.names = FALSE)
+write.csv(Sigma_list, file = "./data/Sigma_matrix_list.csv", row.names = FALSE)
+write.csv(gamma_list, file = "./data/gamma_list.csv", row.names = FALSE)
+write.csv(sigma_list, file = "./data/sigma_list.csv", row.names = FALSE)
+```
+
+### Resulting plots (not complete)
+
+Please make time series plots for all parameters to see if and from which index their samples converge. (may not need for $\mathbf{B}$, since it has $5n$ parameters (5 for each hurricane))
+
+Please also make autocorrelation plots.
+
+```{r fig.height=5, fig.width=8}
+beta_list <- read.csv("./data/B_list_partial.csv")
+mu_list <- read.csv("./data/mu_list.csv")
+Sigma_list <- read.csv("./data/Sigma_matrix_list.csv")
+gamma_list <- read.csv("./data/gamma_list.csv")
+sigma_list <- read.csv("./data/sigma_list.csv")$x
+
+plot(gamma_list[,1], type = "l") # e.g. plot gamma1 (year)
+plot(mu_list[,5], type = "l") # plot mu5 (wind_diff)
+plot(sigma_list, type = "l") # plot sigma
+```
+
+### Burn in (based on resulting plots)
+
+`xxx_sample` will be used for doing inference (estimates, CI, hypothesis test) and making predictions.
+
+Please select "burn in" numbers based on all time series plots and autocorrelation plots.
+
+```{r}
+burn <- 500 # burn in the MC chains. change this based on the resulting plots
+index <- (burn + 1):length(res) # index of useful samples (used for estimates & CIs)
+beta_sample <- beta_list[index,]
+mu_sample <- mu_list[index,]
+Sigma_sample <- Sigma_list[index,] # may be useless
+gamma_sample <- gamma_list[index,]
+sigma_sample <- sigma_list[index] # may be useless
+```
+
+### Acceptance rate for $\sigma$ samples
+
+30% - 60% is good. if not, please change `a` in random walk. If really need to change `a`, you need to rerun the MCMC function and update the results saved in the files.
+
+```{r}
+length(unique(sigma_list[index]))/length(sigma_list[index])
+```
