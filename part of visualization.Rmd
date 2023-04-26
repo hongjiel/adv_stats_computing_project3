@@ -359,10 +359,6 @@ for (i in 1:n_iter) {
     theme_minimal() +
     theme(axis.title = element_blank(), axis.text = element_blank(), panel.grid = element_blank()) +
     geom_text(aes(label = round(value, 2)), size = 3, color = "white")
-  
-  # Save the plot as a PNG file
-  ggsave(output_files[i], p, width = 5, height = 5, dpi = 300)
-  
   # Add the plot object to the list
   plot_list[[i]] <- p
 }
