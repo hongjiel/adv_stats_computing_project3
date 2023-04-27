@@ -45,7 +45,7 @@ follows a multivariate normal distributions with mean $\mathcolor{red}{\boldsymb
 
 ### Prior distribution
 
-Let $n$ denote the number of hurricanes in the training data. \textcolor{blue}{(we need to partition all hurricanes into training \& test.)}
+Let $n$ denote the number of hurricanes in the training data. \textcolor{blue}{(we may need to partition all hurricanes into training \& test.)}
 
 $$\begin{aligned}
 \pi(\Theta)=&\ \pi(\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma)\\
@@ -53,7 +53,7 @@ $$\begin{aligned}
 =&\ \left(\prod_{i=1}^n\pi(\boldsymbol\beta_i^\top\mid\boldsymbol{\mu}^\top,\boldsymbol{\Sigma})\right)\pi(\boldsymbol{\mu})\pi(\boldsymbol{\Sigma})\pi(\boldsymbol\gamma)\pi(\sigma)\\
 =&\ \prod_{i=1}^n\left[(2\pi)^{-5/2}|\boldsymbol{\Sigma}|^{-1/2}\exp\left(-\frac{1}{2}(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)\right)\right] && \boldsymbol\beta_i\sim N(\boldsymbol{\mu},\boldsymbol{\Sigma})\\
 &\ \times(2\pi)^{-5/2}|\boldsymbol{V}|^{-1/2}\exp\left(-\frac{1}{2}\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu\right) && \boldsymbol{\mu}\sim N(\boldsymbol{0},\boldsymbol{V})\\
-&\ \times\frac{|\boldsymbol{S}|^{\nu/2}}{2^{5\nu/2}\Gamma_5(\nu/2)}|\boldsymbol{\Sigma}|^{-(v+6)/2}\exp\left(-\frac{1}{2}\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})\right) && \boldsymbol{\Sigma}\sim \mathcal{W}^{-1}(\boldsymbol{S},\nu)\\
+&\ \times\frac{|\boldsymbol{S}|^{\nu/2}}{2^{5\nu/2}\Gamma_5(\nu/2)}|\boldsymbol{\Sigma}|^{-(\nu+6)/2}\exp\left(-\frac{1}{2}\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})\right) && \boldsymbol{\Sigma}\sim \mathcal{W}^{-1}(\boldsymbol{S},\nu)\\
 &\ \times(2\pi)^{-14/2}\cdot20^{14}\cdot\exp\left(-\frac{1}{2}\cdot20^2\cdot\boldsymbol\gamma^\top\boldsymbol\gamma\right) && \boldsymbol\gamma\sim N(\boldsymbol 0,0.05^2\boldsymbol I_{14})\\
 &\ \times\frac{2}{10\pi}\cdot\frac{I(\sigma>0)}{1+(\sigma/10)^2} && \sigma\sim \text{half-Cauchy}(0,10)\\
 \propto &\ |\boldsymbol{\Sigma}|^{-n/2}\exp\left(-\frac{1}{2}\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)\right)\times\exp\left(-\frac{1}{2}\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu\right)\\
@@ -80,6 +80,6 @@ f(\boldsymbol{Y}^\top\mid\Theta)=&\ \prod_{i=1}^nf(\boldsymbol{Y}_i^\top\mid\mat
 $$\begin{aligned}
 \pi(\Theta\mid \boldsymbol{Y}^\top)
 \propto &\ f(\boldsymbol{Y}^\top\mid\Theta)\pi(\Theta)\\
-\propto &\ \frac{|\boldsymbol{\Sigma}|^{-(n+v+6)/2}}{1+(\sigma/10)^2}\exp\left[-\frac{1}{2}\left(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu+\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})+400\|\boldsymbol\gamma\|_2^2\right)\right]\\
+\propto &\ \frac{|\boldsymbol{\Sigma}|^{-(n+\nu+6)/2}}{1+(\sigma/10)^2}\exp\left[-\frac{1}{2}\left(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu+\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})+400\|\boldsymbol\gamma\|_2^2\right)\right]\\
 &\ \times I(\sigma>0)\sigma^{-\sum_{i=1}^n m_i}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).
 \end{aligned}$$
