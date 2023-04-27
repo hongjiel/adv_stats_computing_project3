@@ -57,7 +57,7 @@ hurricane_df <-
 ### Data partition (may be useless.)
 
 ```{r}
-# data partition
+# data partition, no need to partition data
 Training <- hurricane_df
 ```
 
