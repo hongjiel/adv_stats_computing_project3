@@ -14,8 +14,9 @@ library(maps)
 ```{r}
 origin_df <- read.csv("hurrican703.csv")
 
-# identify some problems in the data wrangling part.
-# for visualization, we need to fix the problems first.
+# identify a problem in the data wrangling part far below:
+# different hurricanes with same names.
+# for visualization, we need to fix the problem first.
 dt <- 
   origin_df %>% 
   mutate(
@@ -93,14 +94,14 @@ hurricane_df <- origin_df %>%
   filter(hour %in% c("00:00:00", "06:00:00", "12:00:00", "18:00:00")) %>% 
   select(-hour)
 
-# remove hurricanes that has only 1 (<2) observations (change the threshold if you wish)
+# remove hurricanes that has only 2 (<3) observations (change the threshold if you wish)
 few_id <- hurricane_df %>% 
   group_by(ID) %>% 
   summarize(obs = n()) %>% 
-  filter(obs < 2) %>% 
+  filter(obs < 3) %>% 
   .$ID
 few_id
-hurricane_df <- hurricane_df %>% filter(!(ID %in% few_id)) # remove 2 hurricanes
+hurricane_df <- hurricane_df %>% filter(!(ID %in% few_id)) # remove 3 hurricanes
 
 # check if any missing hours (e.g., 0 directly to 12, missing 6)
 issue_id <- hurricane_df %>% 
@@ -152,31 +153,22 @@ issue_id <- hurricane_df %>%
   .$ID
 issue_id # no such problem
 
-summary(hurricane_df) # 21693 observations, 705 hurricanes
+summary(hurricane_df) # 21691 observations, 704 hurricanes
 
 diff_df <-
   hurricane_df %>% 
   group_by(ID) %>% 
   mutate(
-    lat_diff = lead(Latitude) - Latitude,
-    long_diff = lead(Longitude) - Longitude,
-    wind_diff = lead(Wind.kt) - Wind.kt,
-    time_j = round(difftime(time, min(time), units = "hours")/6) %>% as.integer
+    # diff between t & t-6
+    lat_diff = Latitude - lag(Latitude),
+    long_diff = Longitude - lag(Longitude),
+    wind_diff = Wind.kt - lag(Wind.kt),
+    # time: (t - t0)/6, where t0 is the first observation time.
+    # you can change this value (e.g. +1, or -1) as you wish
+    time = round(difftime(time, min(time), units = "hours")/6) %>% as.integer
   ) %>% 
-  select(ID, lat_diff, long_diff, wind_diff, time_j)
+  drop_na %>% 
+  select(ID, lat_diff, long_diff, wind_diff, time)
 
 summary(diff_df)
 ```
-
-
-```{r}
-# data partition
-id <- hurricane_df %>% select(ID) %>% unique %>% as.vector %>% unlist
-set.seed(1)
-index <- sample(1:length(id), size = 0.8*length(id))
-training_id <- id[index]
-test_id <- id[-index]
-Training <- hurricane_df %>% filter(ID %in% training_id)
-Test <- hurricane_df %>% filter(ID %in% test_id)
-```
-
