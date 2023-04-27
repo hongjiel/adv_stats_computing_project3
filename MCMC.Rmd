@@ -58,13 +58,7 @@ hurricane_df <-
 
 ```{r}
 # data partition
-id <- hurricane_df %>% dplyr::select(ID) %>% unique %>% as.vector %>% unlist
-set.seed(1)
-index <- sample(1:length(id), size = 0.8*length(id))
-training_id <- id[index]
-test_id <- id[-index]
-Training <- hurricane_df %>% filter(ID %in% training_id)
-Test <- hurricane_df %>% filter(ID %in% test_id)
+Training <- hurricane_df
 ```
 
 ### Create $\mathbf{X}$, $\mathbf{Y}$, $\mathbf{Z}$ and $\boldsymbol{m}=(m_i)$ in R
