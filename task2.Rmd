@@ -33,8 +33,8 @@ $$\boldsymbol{\mu}\mid (\mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\t
 3. $\boldsymbol{\Sigma}$:
 $$\begin{aligned}
 \pi(\boldsymbol{\Sigma}\mid\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)
-\propto&\ |\boldsymbol{\Sigma}|^{-(n+v+6)/2}\exp\left[-\frac{1}{2}\left(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})\right)\right]\\
-\propto&\ |\boldsymbol{\Sigma}|^{-(n+v+6)/2}\exp\left[-\frac{1}{2}\mathrm{tr}\left(\left(\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top\right)\boldsymbol{\Sigma}^{-1}\right)\right].
+\propto&\ |\boldsymbol{\Sigma}|^{-(n+\nu+6)/2}\exp\left[-\frac{1}{2}\left(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})\right)\right]\\
+\propto&\ |\boldsymbol{\Sigma}|^{-(n+\nu+6)/2}\exp\left[-\frac{1}{2}\mathrm{tr}\left(\left(\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top\right)\boldsymbol{\Sigma}^{-1}\right)\right].
 \end{aligned}$$
 Thus we have
 $$\boldsymbol{\Sigma}\mid (\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)\sim \mathcal{W}^{-1}\left(\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top, n+\nu\right).$$
