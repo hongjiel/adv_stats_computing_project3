@@ -12,8 +12,7 @@ library(tidyverse)
 **Task 2:** With the estimated model parameters and covariate values, you can calculate the predicted wind speed for each time point using the model equation. This way, you can track the hurricane and compare the predicted wind speeds with the actual wind speeds recorded during the hurricane. Please evaluate how well the estimated Bayesian model can track individual hurricanes.
 
 ```{r echo=FALSE, results=FALSE}
-# prior settings from MCMC.rmd
-
+# prior settings from MCMC.rmd, not to be shown in the pdf file.
 origin_df = read.csv("hurrican703.csv")
 
 hurricane_df = origin_df %>% 
@@ -92,7 +91,7 @@ m = Training %>%
 
 ### Solution
 
-First import parameters from task 1 & 2.
+Import parameters from task 1 & 2.
 ```{r}
 # load parameters
 beta_list = read.csv("./data/B_list_partial.csv")
@@ -101,26 +100,54 @@ Sigma_list = read.csv("./data/Sigma_matrix_list.csv")
 gamma_list = read.csv("./data/gamma_list.csv")
 sigma_list = read.csv("./data/sigma_list.csv")$x
 
-burn = 500 # burn in the MC chains. change this based on the resulting plots
-index = (burn + 1):10000 # index of useful samples (used for estimates & CIs)
+# burn in the MC chains. change this based on the resulting plots
+burn = 500 
+# index of useful samples (used for estimates & CIs)
+index = (burn + 1):10000
 beta_sample = beta_list[index,]
 mu_sample = mu_list[index,]
 gamma_sample = gamma_list[index,]
 ```
 
-Prediction of wind speed for each hurricane.
+Implement the prediction process of wind speed for each hurricane in R.
 ```{r}
+# final parameters to be used
 para_beta = rbind(colMeans(beta_sample))
 para_mu = rbind(colMeans(mu_sample))
 para_gamma = rbind(colMeans(gamma_sample))
 
 # prediction function
 Windspeed_Predict = function(index_hurricane, index_time){
-  predict_speed = Z[[index_hurricane]][index_time,] %*% para_beta[index_hurricane:(index_hurricane + 4)] + (X %*% t(para_gamma))[index_hurricane, ]
+  predict_speed = 
+    Z[[index_hurricane]][index_time,] %*% para_beta[index_hurricane:(index_hurricane + 4)] + 
+    (X %*% t(para_gamma))[index_hurricane, ]
   return(predict_speed)
 }
 
 # functional test
-Windspeed_Predict(2, 6)
+Windspeed_Predict(1, 26)
+
+# initialize prediction table
+Y_table = split(Training$Wind.kt, Training$ID) %>% 
+  lapply(function(x) x[-c(1:2)]) %>%
+  lapply(as.data.frame) %>%
+  lapply(function(df) {
+    df$wind_true = df$`X[[i]]`
+    df$wind_predict = df$wind_true
+    df = as.matrix(df)
+    subset(df, select = c("wind_true", "wind_predict"))
+  })
+
+# updating prediction table
+for (i in 1:length(names(Z))) {
+ for (j in 1:nrow(Z[[i]])) {
+ Y_table[[i]][, 2][j] = Windspeed_Predict(i, j)
+  } 
+}
+```
+
+Data visualization for prediction results.
+```{r}
+
 ```
 
