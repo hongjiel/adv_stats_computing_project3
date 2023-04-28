@@ -119,7 +119,7 @@ mu_sample <- function(B, Sigma) {
 }
 
 Sigma_sample <- function(B, mu) {
-  Sigma.inv <- rWishart(n = 1, Sigma = S + (B - mu) %*% t(B - mu), df = n + nu)[,,]
+  Sigma.inv <- rWishart(n = 1, Sigma = solve(S + (B - mu) %*% t(B - mu)), df = n + nu)[,,]
   Sigma <- solve(Sigma.inv)
   return(Sigma)
 }
