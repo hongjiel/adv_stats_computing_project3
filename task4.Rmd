@@ -165,6 +165,10 @@ hurricane_info = Training %>%
   ungroup(ID)
 hurri_res = left_join(hurri_res, hurricane_info, by = "ID")
 
+# density of RMSE
+hist(hurri_res$RMSE, breaks = 5)
+
+
 # subset of non-NAs
 hurri_res = hurri_res[1:90, ]
 
