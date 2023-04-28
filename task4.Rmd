@@ -132,10 +132,10 @@ Y_table = split(Training$Wind.kt, Training$ID) %>%
   lapply(function(x) x[-c(1:2)]) %>%
   lapply(as.data.frame) %>%
   lapply(function(df) {
-    df$wind_true = df$`X[[i]]`
-    df$wind_predict = df$wind_true
+    df$wind_obs = df$`X[[i]]`
+    df$wind_predict = df$wind_obs
     df = as.matrix(df)
-    subset(df, select = c("wind_true", "wind_predict"))
+    subset(df, select = c("wind_obs", "wind_predict"))
   })
 
 # updating prediction table
@@ -148,6 +148,59 @@ for (i in 1:length(names(Z))) {
 
 Data visualization for prediction results.
 ```{r}
+hurri_res = data.frame(ID = "example",
+                       RMSE = 0)
+for (i in 1:length(names(Z))) {
+  RMSE = sqrt(mean((Y_table[[i]][,1] - Y_table[[i]])^2))
+  new_row = c(names(Z)[i], RMSE)
+  hurri_res = rbind(hurri_res, new_row)
+}
 
+hurri_res = hurri_res[-1, ]
+hurri_res$RMSE = as.numeric(hurri_res$RMSE)
+hurricane_info = Training %>% 
+  group_by(ID) %>% 
+  slice(1) %>% 
+  dplyr::select(ID, Season, Month, Nature) %>% 
+  ungroup(ID)
+hurri_res = left_join(hurri_res, hurricane_info, by = "ID")
+
+# subset of non-NAs
+hurri_res = hurri_res[1:90, ]
+
+example_hurri = as.data.frame(Y_table[[1]])
+example_hurri$index = 1:nrow(example_hurri)
+
+# example visualization of index 1 hurricane
+ggplot(example_hurri, aes(x = wind_predict, y = wind_obs)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE)
+
+ggplot(example_hurri, aes(x = index)) +
+  geom_point(aes(y = wind_obs, color = "Observed")) +
+  geom_point(aes(y = wind_predict, color = "Predicted")) +
+  geom_line(aes(y = wind_obs, color = "Observed")) +
+  geom_line(aes(y = wind_predict, color = "Predicted")) +
+  labs(title = "Observation vs. Prediction", x = "Time Index", y = "Wind Speed") +
+  scale_color_manual(name = "Legend",
+                     values = c("Observed" = "#1E90FF", "Predicted" = "orange"),
+                     labels = c("Observation", "Prediction"))
+
+example_hurri = as.data.frame(Y_table[[10]])
+example_hurri$index = 1:nrow(example_hurri)
+# example visualization of index 2 hurricane
+ggplot(example_hurri, aes(x = wind_predict, y = wind_obs)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE)
+
+ggplot(example_hurri, aes(x = index)) +
+  geom_point(aes(y = wind_obs, color = "Observed")) +
+  geom_point(aes(y = wind_predict, color = "Predicted")) +
+  geom_line(aes(y = wind_obs, color = "Observed")) +
+  geom_line(aes(y = wind_predict, color = "Predicted")) +
+  labs(title = "Observation vs. Prediction", x = "Time Index", y = "Wind Speed") +
+  scale_color_manual(name = "Legend",
+                     values = c("Observed" = "#1E90FF", "Predicted" = "orange"),
+                     labels = c("Observation", "Prediction"))
 ```
 
