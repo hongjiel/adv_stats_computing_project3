@@ -4,11 +4,95 @@ output:
     pdf_document
 ---
 
+```{r include=FALSE, echo=FALSE}
+library(MASS)
+library(tidyverse)
+```
 
 **Task 2:** With the estimated model parameters and covariate values, you can calculate the predicted wind speed for each time point using the model equation. This way, you can track the hurricane and compare the predicted wind speeds with the actual wind speeds recorded during the hurricane. Please evaluate how well the estimated Bayesian model can track individual hurricanes.
 
+```{r echo=FALSE, results=FALSE}
+# prior settings from MCMC.rmd
+
+origin_df = read.csv("hurrican703.csv")
+
+hurricane_df = origin_df %>% 
+  mutate(
+    Month = factor(Month, levels = month.name[-c(2:3)]), # April-January (January ref, may choose another)
+    Nature = as.factor(Nature), # TS,ET,DS,SS,NR (DS ref, may choose another)
+    # note: one hurricane can have multiple natures throughout its life
+    time = gsub("[()]", "", time),
+    time = paste0(ifelse(substr(time, 1, 2) > 23, "19", "20"), time),
+    time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S"),
+    hour = substr(time, 12, 19)
+  ) %>% 
+  # remove data not at six-hour time intervals. (613 observations)
+  filter(hour %in% c("00:00:00", "06:00:00", "12:00:00", "18:00:00")) %>% 
+  dplyr::select(-hour)
+
+# remove hurricanes that has only 2 (<3) observations (change the threshold if you wish)
+few_id = hurricane_df %>% 
+  group_by(ID) %>% 
+  summarize(obs = n()) %>% 
+  filter(obs < 3) %>% 
+  .$ID
+hurricane_df = hurricane_df %>% filter(!(ID %in% few_id)) # remove 3 hurricanes
+
+# manually correct hurricanes that have same names but are actually different
+hurricane_df = 
+  hurricane_df %>% 
+  mutate(
+    # 2 hurricanes with the name ALICE.1954
+    ID = ifelse(ID == "ALICE.1954" & Month == "June", "ALICE.1954(1)", ID),
+    ID = ifelse(ID == "ALICE.1954", "ALICE.1954(2)", ID),
+    # 4 hurricanes with the name SUBTROP:UNNAMED.1974
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "June", "SUBTROP:UNNAMED.1974(1)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "July", "SUBTROP:UNNAMED.1974(2)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "August", "SUBTROP:UNNAMED.1974(3)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974", "SUBTROP:UNNAMED.1974(4)", ID),
+    # 2 hurricanes with the name SUBTROP:UNNAMED.1976
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1976" & Month == "May", "SUBTROP:UNNAMED.1976(1)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1976", "SUBTROP:UNNAMED.1976(2)", ID)
+  )
+
+# data partition, no need to partition data
+Training = hurricane_df
+
+n = length(unique(Training$ID))
+
+Y = split(Training$Wind.kt, Training$ID) %>% 
+  lapply(function(x) x[-c(1:2)])
+
+X = Training %>% 
+  group_by(ID) %>% 
+  slice(1) %>% 
+  dplyr::select(ID, Season, Month, Nature) %>% 
+  ungroup(ID)
+X = model.matrix(~., X[-1])[,-1]
+
+Z = Training %>% 
+  group_by(ID) %>% 
+  mutate(
+    intercept = 1,
+    wind_pre = lag(Wind.kt),
+    lat_diff = lag(Latitude) - lag(Latitude, 2),
+    long_diff = lag(Longitude) - lag(Longitude, 2),
+    wind_diff = lag(Wind.kt) - lag(Wind.kt, 2),
+  ) %>% 
+  drop_na %>% 
+  dplyr::select(ID, intercept, wind_pre, lat_diff, long_diff, wind_diff)
+Z = split(Z[, names(Z)[-1]], Z$ID) %>% 
+  lapply(as.matrix)
+
+m = Training %>% 
+  group_by(ID) %>% 
+  summarize(obs = n() - 2) %>% 
+  .$obs
+```
+
 ### Solution
 
+First import parameters from task 1 & 2.
 ```{r}
 # load parameters
 beta_list = read.csv("./data/B_list_partial.csv")
@@ -21,8 +105,22 @@ burn = 500 # burn in the MC chains. change this based on the resulting plots
 index = (burn + 1):10000 # index of useful samples (used for estimates & CIs)
 beta_sample = beta_list[index,]
 mu_sample = mu_list[index,]
-Sigma_sample = Sigma_list[index,] # may be useless
 gamma_sample = gamma_list[index,]
-sigma_sample = sigma_list[index] # may be useless
+```
+
+Prediction of wind speed for each hurricane.
+```{r}
+para_beta = rbind(colMeans(beta_sample))
+para_mu = rbind(colMeans(mu_sample))
+para_gamma = rbind(colMeans(gamma_sample))
+
+# prediction function
+Windspeed_Predict = function(index_hurricane, index_time){
+  predict_speed = Z[[index_hurricane]][index_time,] %*% para_beta[index_hurricane:(index_hurricane + 4)] + (X %*% t(para_gamma))[index_hurricane, ]
+  return(predict_speed)
+}
+
+# functional test
+Windspeed_Predict(2, 6)
 ```
 
