@@ -80,7 +80,19 @@ lmm <- lmer(Wind.kt ~ Season + Month + Nature + wind_pre + lat_diff + long_diff 
 
 summary(lmm)
 ```
+
+
 ```{r}
 fixed.effects(lmm)
+
+random.effects(lmm)$ID
+
+```
+
+```{r}
+mu0<-c(23.927855,0.941290,0.006555,-0.243833,0.468805)
+
+
+gamma0<-as.vector(fixed.effects(lmm)[2:15])
 ```
 
