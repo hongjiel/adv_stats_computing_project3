@@ -1,0 +1,28 @@
+---
+title: "Task 4"
+output: 
+    pdf_document
+---
+
+
+**Task 2:** With the estimated model parameters and covariate values, you can calculate the predicted wind speed for each time point using the model equation. This way, you can track the hurricane and compare the predicted wind speeds with the actual wind speeds recorded during the hurricane. Please evaluate how well the estimated Bayesian model can track individual hurricanes.
+
+### Solution
+
+```{r}
+# load parameters
+beta_list = read.csv("./data/B_list_partial.csv")
+mu_list = read.csv("./data/mu_list.csv")
+Sigma_list = read.csv("./data/Sigma_matrix_list.csv")
+gamma_list = read.csv("./data/gamma_list.csv")
+sigma_list = read.csv("./data/sigma_list.csv")$x
+
+burn = 500 # burn in the MC chains. change this based on the resulting plots
+index = (burn + 1):10000 # index of useful samples (used for estimates & CIs)
+beta_sample = beta_list[index,]
+mu_sample = mu_list[index,]
+Sigma_sample = Sigma_list[index,] # may be useless
+gamma_sample = gamma_list[index,]
+sigma_sample = sigma_list[index] # may be useless
+```
+
