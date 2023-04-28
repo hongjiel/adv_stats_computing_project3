@@ -16,6 +16,8 @@ origin_df <- read.csv("hurrican703.csv")
 
 hurricane_df <- origin_df %>% 
   mutate(
+    Active = ifelse(Month %in% month.name[8:10], "Active", "Inactive"),
+    Active = factor(Active, levels = c("Inactive", "Active")),
     Month = factor(Month, levels = month.name[-c(2:3)]), # April-January (January ref, may choose another)
     Nature = as.factor(Nature), # TS,ET,DS,SS,NR (DS ref, may choose another)
     # note: one hurricane can have multiple natures throughout its life
@@ -72,7 +74,7 @@ Y <- split(Training$Wind.kt, Training$ID) %>%
 X <- Training %>% 
   group_by(ID) %>% 
   slice(1) %>% 
-  dplyr::select(ID, Season, Month, Nature) %>% 
+  dplyr::select(ID, Season, Active, Nature) %>% 
   ungroup(ID)
 X <- model.matrix(~., X[-1])[,-1]
 
@@ -126,7 +128,7 @@ Sigma_sample <- function(B, mu) {
 
 gamma_sample <- function(B, sigma) {
   X_trans <- sqrt(m) * X
-  cov <- solve(400*diag(14) + 1/sigma^2 * t(X_trans) %*% X_trans)
+  cov <- solve(400*diag(6) + 1/sigma^2 * t(X_trans) %*% X_trans)
   total <- rowSums(sapply(1:n, function(i) sum(Z[[i]] %*% B[,i] - Y[[i]]) * X[i,]))
   mean <- cov %*% (-1/sigma^2 * total)
   gamma <- mvrnorm(mu = mean, Sigma = cov)
@@ -189,8 +191,8 @@ S <- diag(5) # can try other. see requirement
 B0 <- matrix(rep(0, 5*n), ncol = n, nrow = 5) # each column is beta_i
 mu0 <- rep(0, 5)
 Sigma0 <- diag(5)
-gamma0 <- rep(0, 14)
-sigma0 <- 10
+gamma0 <- rep(0, 6)
+sigma0 <- 5
 
 set.seed(1)
 res <- MCMC(B0, mu0, Sigma0, gamma0, sigma0, a = 0.12, iter = 10000) # try larger values
@@ -213,7 +215,11 @@ gamma_list <- t(mapply(function(x) x$gamma, res))
 # sigma
 sigma_list <- mapply(function(x) x$sigma, res)
 
-write.csv(B_list[,1:100], file = "./data/B_list_partial.csv", row.names = FALSE) # e.g. first 20 hurricanes
+
+B_mean = bind_rows(colSums(B_list[5001:10000,])/5000, colSums(B_list[6001:10000,])/4000,
+                  colSums(B_list[7001:10000,])/3000, colSums(B_list[8001:10000,])/2000,
+                  colSums(B_list[9001:10000,])/1000)
+write.csv(B_mean, file = "./data/B_list_lastmean.csv", row.names = FALSE) # last 5000 obs
 write.csv(mu_list, file = "./data/mu_list.csv", row.names = FALSE)
 write.csv(Sigma_list, file = "./data/Sigma_matrix_list.csv", row.names = FALSE)
 write.csv(gamma_list, file = "./data/gamma_list.csv", row.names = FALSE)
@@ -227,14 +233,15 @@ Please make time series plots for all parameters to see if and from which index 
 Please also make autocorrelation plots.
 
 ```{r fig.height=5, fig.width=8}
-beta_list <- read.csv("./data/B_list_partial.csv")
+beta_list <- read.csv("./data/B_list_lastmean.csv")
 mu_list <- read.csv("./data/mu_list.csv")
 Sigma_list <- read.csv("./data/Sigma_matrix_list.csv")
 gamma_list <- read.csv("./data/gamma_list.csv")
 sigma_list <- read.csv("./data/sigma_list.csv")$x
 
+plot(mu_list[,1], type = "l") # plot mu1 (intercept)
 plot(gamma_list[,1], type = "l") # e.g. plot gamma1 (year)
-plot(mu_list[,5], type = "l") # plot mu5 (wind_diff)
+plot(Sigma_list[,13], type = "l") # plot Sigma11
 plot(sigma_list, type = "l") # plot sigma
 ```
 
@@ -245,9 +252,9 @@ plot(sigma_list, type = "l") # plot sigma
 Please select "burn in" numbers based on all time series plots and autocorrelation plots.
 
 ```{r}
-burn <- 500 # burn in the MC chains. change this based on the resulting plots
+burn <- 5000 # burn in the MC chains. change this based on the resulting plots
 index <- (burn + 1):length(res) # index of useful samples (used for estimates & CIs)
-beta_sample <- beta_list[index,]
+B_sample <- B_list[index - 5000,]
 mu_sample <- mu_list[index,]
 Sigma_sample <- Sigma_list[index,] # may be useless
 gamma_sample <- gamma_list[index,]
