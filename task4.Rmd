@@ -119,7 +119,7 @@ para_gamma = rbind(colMeans(gamma_sample))
 # prediction function
 Windspeed_Predict = function(index_hurricane, index_time){
   predict_speed = 
-    Z[[index_hurricane]][index_time,] %*% para_beta[index_hurricane:(index_hurricane + 4)] + 
+    Z[[index_hurricane]][index_time,] %*% para_beta[((index_hurricane - 1) * 5 + 1):((index_hurricane - 1) * 5 + 5)] + 
     (X %*% t(para_gamma))[index_hurricane, ]
   return(predict_speed)
 }
