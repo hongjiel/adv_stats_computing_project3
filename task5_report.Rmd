@@ -1,0 +1,256 @@
+---
+title: "P8160 - Bayesian Modeling of Hurricane Trajectories"
+author: "Hongjie Liu, Xicheng Xie, Jiajun Tao, Zijian Xu, Shaohan Chen"
+date: "5/1/2023"
+output:
+  pdf_document:
+    number_sections: true
+    toc: yes
+    toc_depth: 2
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '2'
+header-includes:
+- \usepackage{fancyhdr}
+- \usepackage{lipsum}
+- \pagestyle{fancy}
+- \fancyhead[R]{\thepage}
+- \fancypagestyle{plain}{\pagestyle{fancy}}
+- \usepackage{algorithm} 
+- \usepackage{algpseudocode} 
+- \usepackage{amsthm}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+```
+
+\newpage 
+# Background and Objectives
+Mammography is recognized as the most effective screening method for early breast cancer detection, but its accuracy remains limited. And as the number of variables that help predict breast cancer increases, doctors are forced to rely more on their subjective experiences to make decisions. The use of computer models can detect abnormalities in mammograms to aid radiologists in breast cancer diagnosis \hyperlink{1}{(Freer et al. 2001)}. The purpose of this study was to predict breast cancer benign/malignant status by quantitative modeling based on logistic regression, which may help radiologists manage a large amount of available information, make effective decisions to detect breast cancers and reduce unnecessary biopsy.
+
+The data given has 569 observations. The column 'Diagnosis' which identifies if the image is coming from cancer tissue or benign cases (M = malignant, B = benign) would be used as outcome for modeling. We denote malignant as 1 and benign cases as 0 for prediction.
+The other 30 columns correspond to mean, standard deviation and the largest values (points on the tails) of the distributions of the following 10 features computed for the cell nuclei:
+\begin{itemize}
+\item radius: mean of distances from center to points on the perimeter
+\item texture: standard deviation of gray-scale values
+\item perimeter: mean size of the core tumor
+\item area: mean area of the core tumor
+\item smoothness: local variation in radius lengths
+\item compactness: perimeter$^2/$area - 1.0
+\item concavity: severity of concave portions of the contour
+\item concave points: number of concave portions of the contour
+\item symmetry: symmetry of the tumor
+\item fractal dimension: "coastline approximation" - 1
+\end{itemize}
+
+We partitioned the data into training data (80%) and test data (20%). As exploring the training data, there are many predictors highly correlated to each other as shown in Figure  , such as 'area_mean', 'perimeter_worst', 'radius_mean' and so on, that could cause unstable parameter estimation as well as perplexing the interpretation of logistic model. While we could eliminate some correlated features for modeling as shown in Figure , regularized logistic regression also helps to tackle with it, which would be further explored in the following parts. 
+
+# Methods
+## Logistic Model
+Logistic model measures the probability of an event taking place by having the log-odds for the event be a linear combination of one or more independent variables, and is commonly used in classifying binary response variables.\par
+
+Hereby, the variable "Diagnosis" is a binary response variable indicating if the image is coming from cancer tissue or benign cases (M = malignant, B = benign). In the following logistic regression model, the "Diagnosis" variable will be coded as 1 for malignant cases and 0 for benign cases.\par
+
+Given $n$ i.i.d. observations with $p$ predictors, we consider a logistic regression model
+\begin{equation}\label{model}
+P(Y_i=1\mid \mathbf{x}_i)=\frac{e^{\mathbf{x}_i^\top\boldsymbol{\beta}}}{1+e^{\mathbf{x}_i^\top\boldsymbol{\beta}}},\; i=1,\ldots,n
+\end{equation}
+where $\boldsymbol{\beta}=(\beta_0,\beta_1,\ldots,\beta_p)^\top\in\mathbb{R}^{p+1}$ is the parameter vector, $\mathbf{x}_i=(1,X_{i1},\ldots,X_{ip})^\top$ is the vector of predictors in the $i$-th observation, and $Y_i\in\{0,1\}$ is the binary response in the $i$-th observation.
+Let $\mathbf{y}=(Y_1,Y_2,\ldots,Y_n)^\top$ denote the response vector, $\mathbf{X}=(\mathbf{x}_1,\mathbf{x}_2,\ldots,\mathbf{x}_n)^\top\in\mathbb{R}^{n\times(p+1)}$ denote the design matrix. The observed likelihood of $\{(Y_1,\mathbf{x}_1),(Y_2,\mathbf{x}_2)\ldots,(Y_n,\mathbf{x}_n)\}$ is
+$$L(\boldsymbol{\beta};\mathbf{y},\mathbf{X})=\prod_{i=1}^n\left[\left(\frac{e^{\mathbf{x}_i^\top\boldsymbol{\beta}}}{1+e^{\mathbf{x}_i^\top\boldsymbol{\beta}}}\right)^{Y_i}\left(\frac{1}{1+e^{\mathbf{x}_i^\top\boldsymbol{\beta}}}\right)^{1-Y_i}\right].$$
+Maximizing the likelihood is equivalent to maximizing the log-likelihood function:
+\begin{equation}\label{func}
+f(\boldsymbol{\beta};\mathbf{y},\mathbf{X})=\sum_{i=1}^n\left[Y_i\mathbf{x}_i^\top\boldsymbol{\beta}-\log\left(1+e^{\mathbf{x}_i^\top\boldsymbol{\beta}}\right)\right].
+\end{equation}
+The estimates of model parameters are
+$$\widehat{\boldsymbol{\beta}}=\arg\max_{\boldsymbol{\beta}}\; f(\boldsymbol{\beta};\mathbf{y},\mathbf{X}),$$
+and the optimization problem is
+\begin{equation}\label{opt}
+\max_{\boldsymbol{\beta}}\; f(\boldsymbol{\beta};\mathbf{y},\mathbf{X}).
+\end{equation}
+Denote $p_i=P(Y_i=1\mid\mathbf{x}_i)$ as given in () and $\mathbf{p}=(p_1,p_2,\ldots,p_n)^\top$. The gradient of $f$ is
+\begin{align*}
+\nabla f(\boldsymbol{\beta};\mathbf{y},\mathbf{X})&=\mathbf{X}^\top(\mathbf{y}-\mathbf{p})\\
+&=\sum_{i=1}^n(Y_i-p_i)\mathbf{x}_i\\
+&=\begin{pmatrix}
+\sum_{i=1}^n(Y_i-p_i)\\ \sum_{i=1}^n(Y_i-p_i)X_{i1}\\ \vdots\\ \sum_{i=1}^n(Y_i-p_i)X_{ip}\end{pmatrix}.
+\end{align*}
+Denote $w_i=p_i(1-p_i)\in(0,\frac{1}{4}]$ and $\mathbf{W}=\mathrm{diag}(w_1,\ldots,w_n)$. The Hessian matrix of $f$ is given by
+\begin{align}
+\nabla^2 f(\boldsymbol{\beta};\mathbf{y},\mathbf{X})&=-\mathbf{X}^\top\mathbf{W}\mathbf{X} \label{hess}\\
+&=-\sum_{i=1}^nw_i\mathbf{x}_i\mathbf{x}_i^\top \nonumber\\
+&=-\begin{pmatrix}
+\sum_{i=1}^nw_i & \sum_{i=1}^nw_iX_{i1} & \cdots & \sum_{i=1}^nw_iX_{i1} \\ 
+\sum_{i=1}^nw_iX_{i1} & \sum_{i=1}^nw_iX_{i1}^2 & \cdots & \sum_{i=1}^nw_iX_{i1}X_{ip} \\ 
+\vdots & \vdots & \ddots & \vdots \\ 
+\sum_{i=1}^nw_iX_{ip} & \sum_{i=1}^nw_iX_{ip}X_{i1} & \cdots & \sum_{i=1}^nw_iX_{ip}^2
+\end{pmatrix}. \nonumber
+\end{align}
+It can be shown that the Hessian matrix $\nabla^2 f(\boldsymbol{\beta};\mathbf{y},\mathbf{X})$ is a negative-definite matrix if $\mathbf{X}$ has full rank (Theorem ). Hence, the optimization problem () is a well-defined problem.
+
+## Newton-Raphson Algorithm 
+### Algorithm Design
+Given that the derivative of the log-likelihood function with respect to each parameter is nonlinear and difficult to solve analytically for maximum likelihood, we use the Newton-Raphson algorithm to solve the optimization problem () numerically.
+
+We develop a modified Newton-Raphson algorithm including a step-halving step. Given that the Hessian matrix is negative-definite in this case, we don't need to ensure that the direction of the step is an ascent direction.
+\begin{algorithm}
+	\caption{Newton-Raphson algorithm including a step-halving step}
+	\begin{algorithmic}
+	  \Require $f(\boldsymbol{\beta})$ - target function as given in (); $\boldsymbol{\beta}_0$ - starting value
+	  \Ensure $\widehat{\boldsymbol{\beta}}$ such that $\widehat{\boldsymbol{\beta}} \approx \arg\max_{\boldsymbol{\beta}}\; f(\boldsymbol{\beta})$
+	  \State $i\leftarrow 0$, where $i$ is the current number of iterations
+	  \State $f(\boldsymbol{\beta}_{-1})\leftarrow -\infty$
+	  \While {convergence criterion is not met}
+	    \State $i \leftarrow i+1$
+	    \State $\mathbf{d}_i\leftarrow-[\nabla^2f(\boldsymbol{\beta}_{i-1})]^{-1}\nabla f(\boldsymbol{\beta}_{i-1})$, where $\mathbf{d}_i$ is the direction in the $i$-th iteration
+	    \State $\lambda_i \leftarrow 1$, where $\lambda_i$ is the multiplier in the $i$-th iteration
+	    \State $\boldsymbol{\beta}_i \leftarrow \boldsymbol{\beta}_{i-1} + \lambda_i\mathbf{d}_i$
+	    \While {$f(\boldsymbol{\beta}_i)\le f(\boldsymbol{\beta}_{i-1})$}
+	      \State $\lambda_i \leftarrow \lambda_i/2$
+	      \State $\boldsymbol{\beta}_i \leftarrow \boldsymbol{\beta}_{i-1} + \lambda_i\mathbf{d}_i$
+	    \EndWhile
+	  \EndWhile
+	  \State $\widehat{\boldsymbol{\beta}}\leftarrow \boldsymbol{\beta}_i$
+	\end{algorithmic}
+\end{algorithm}
+We implement the algorithm in R (see \hyperlink{Code 1}{Code 1}). The starting values of $\boldsymbol\beta$ is set to all 0's. Table 1 displays a comparison between the outcomes obtained from the application of the Newton-Raphson method and the `glm` function.
+
+### Complete Separation Problem
+However, the algorithm does not converge when a complete separation occurs. A complete separation in a logistic regression, also referred to as perfect prediction, occurs whenever there exists some vector of coefficients $\hat{\boldsymbol{\beta}}$ such that $Y_i = 1$ whenever $\mathbf{x}_i^\top\hat{\boldsymbol{\beta}} > 0$ and $Y_i = 0$ whenever $\mathbf{x}_i^\top\hat{\boldsymbol{\beta}} \le 0$. In other words, complete separation occurs whenever a linear function of predictors can generate perfect predictions of response.
+
+To further explain this problem, we prove that: if there exists a vector of coefficients $\hat{\boldsymbol{\beta}}$ that can generate perfect predictions, there does not exist $\boldsymbol{\beta}^*\in\mathbb{R}^{p+1}$ such that $\boldsymbol{\beta}^* = \arg\max_{\boldsymbol{\beta}}f(\boldsymbol{\beta})$, where $f$ is given in () (see Theorem ). Thus our Newton-Raphson algorithm does not converge.
+
+
+## Logistic-LASSO Model
+Regularization is the common approach for variable selection, in which LASSO is to add L-1 penalty to the objective function. In the context of logistic regression, LASSO estimates the model parameters $\boldsymbol{\beta}$ by optimizing a penalized loss function:
+\begin{equation}\label{opt.lasso}
+\min_{\boldsymbol{\beta}}\; -\frac{1}{n}f(\boldsymbol{\beta})+\lambda\sum_{k=1}^{p}|\beta_k|.
+\end{equation}
+where $\lambda\ge 0$ is the tuning parameter and $f$ is the log-likelihood function given in (). Note that the intercept is not penalized and all predictors are standardized.
+
+Then we could develop a path-wise coordinate descent algorithm to solve the optimization problem () with a sequence of nested loops:
+\begin{algorithm}
+	\caption{Path-wise coordinate-wise optimization algorithm}
+	\begin{algorithmic}
+	  \Require $g(\boldsymbol{\beta},\lambda)=-\frac{1}{n}f(\boldsymbol{\beta})+\lambda\sum_{k=1}^{p}|\beta_k|$ - target function, where $f(\boldsymbol{\beta})$ is given in (); $\boldsymbol{\beta}_0$ - starting value; $\{\lambda_1,\ldots,\lambda_m\}$ - a sequence of descending $\lambda$'s, where $\lambda_1=\lambda_{max}$ is given in (); $\epsilon$ - tolerance; $N_s$, $N_t$ - maximum number of iterations of the middle and inner loops
+	  \Ensure $\widehat{\boldsymbol{\beta}}(\lambda_r)$ such that $\widehat{\boldsymbol{\beta}}(\lambda_r) \approx \arg\min_{\boldsymbol{\beta}}\; g(\boldsymbol{\beta},\lambda_r),\; r=1,\ldots,m$
+	  \State $\tilde{\boldsymbol{\beta}}_0(\lambda_{1})\leftarrow\boldsymbol{\beta}_0$
+	  \State OUTER LOOP
+	  \For {$r\in\{1,\ldots,m\}$, where $r$ is the current number of iterations of the outer loop,}
+	    \State $s \leftarrow 0$, where $s$ is the current number of iterations of the middle loop
+	    \State $g(\tilde{\boldsymbol{\beta}}_{-1}(\lambda_{r}),\lambda_{r})\leftarrow \infty$
+	    \State MIDDLE LOOP
+	  	\While {$t\ge2$ and $s<N_s$}
+	  	  \State $s \leftarrow s+1$
+	      \State Update $\tilde{w}_i^{(s)}$, $\tilde{z}_i^{(s)}$ ($i=1,\ldots,n$), and thus $\ell_{s}(\boldsymbol{\beta})$ as given in () based on $\tilde{\boldsymbol{\beta}}_{s-1}(\lambda_{r})$
+	      \State $t \leftarrow 0$, where $t$ is the current number of iterations of the inner loop
+	      \State $\tilde{\boldsymbol{\beta}}_s^{(0)}(\lambda_{r})\leftarrow \tilde{\boldsymbol{\beta}}_{s-1}(\lambda_{r})$
+	      \State $h_{s}(\tilde{\boldsymbol{\beta}}_{s}^{(-1)}(\lambda_{r}),\lambda_{r})\leftarrow \infty$, where $h_{s}(\boldsymbol{\beta},\lambda)=-\frac{1}{n}\ell_{s}(\boldsymbol{\beta})+\lambda\sum_{k=1}^{p}|\beta_k|$
+	      \State INNER LOOP
+	      \While {$\left|h_{s}(\tilde{\boldsymbol{\beta}}_{s}^{(t)}(\lambda_{r}),\lambda_{r}) - h_{s}(\tilde{\boldsymbol{\beta}}_{s}^{(t-1)}(\lambda_{r}),\lambda_{r})\right|>\epsilon$ and $t<N_t$}
+	  	    \State $t \leftarrow t+1$
+	        \State $\tilde{\beta}_0^{(t)}(\lambda_{r})\leftarrow\sum_{i=1}^n\tilde{w}_{i}^{(s)}\left(\tilde{z}_{i}^{(s)}-\sum_{k= 1}^pX_{ik}\tilde{\beta}_k^{(t-1)}(\lambda_{r})\right)\bigg/\sum_{i=1}^n\tilde{w}_{i}^{(s)}$
+	        \For {$j \in\{1,\ldots,p\}$}
+	        \State $\tilde{\beta}_j^{(t)}(\lambda_{r})\leftarrow S\left(\frac{1}{n}\sum_{i=1}^n\tilde{w}_{i}^{(s)}X_{ij}\left(\tilde{z}_{i}^{(s)}-\sum_{k<j}X_{ik}\tilde{\beta}_k^{(t)}(\lambda_{r})-\sum_{k>j}X_{ik}\tilde{\beta}_k^{(t-1)}(\lambda_{r})\right),\lambda_r\right)\bigg/\frac{1}{n}\sum_{i=1}^n\tilde{w}_{i}^{(s)}X_{ij}^2$
+	        \EndFor
+	      \EndWhile
+	      \State $\tilde{\boldsymbol{\beta}}_s(\lambda_{r})\leftarrow\tilde{\boldsymbol{\beta}}_s^{(t)}(\lambda_{r})$
+	    \EndWhile
+	    \State $\widehat{\boldsymbol{\beta}}(\lambda_r)\leftarrow\tilde{\boldsymbol{\beta}}_s(\lambda_r)$
+	    \State $\tilde{\boldsymbol{\beta}}_0(\lambda_{r+1})\leftarrow\widehat{\boldsymbol{\beta}}(\lambda_r)$
+	  \EndFor
+	\end{algorithmic}
+\end{algorithm}
+**Outer Loop.** 
+In the outer loop, we compute the solutions of the optimization problem () for a decreasing sequence of values for $\lambda$: $\{\lambda_1,\ldots,\lambda_m\}$, starting at the smallest value $\lambda_1 = \lambda_{max}$ for which the estimates of all coefficients $\hat{\beta}_j = 0,\; j=1,2,\ldots,p$, which is
+\begin{equation}\label{maxlambda}
+\lambda_{max} = \max_{j\in\{1,\ldots,p\}}\left|\frac{1}{n}\sum_{i=1}^n X_{ij}(Y_i-\bar{Y})\right|,
+\end{equation}
+where $\bar{Y}=\frac{1}{n}\sum_{i=1}^nY_i$. For tuning parameter value $\lambda_{k+1}$, we initialize coordinate descent algorithm at the computed solution for $\lambda_k$ (warm start). Apart from giving us a path of solutions, this scheme exploits warm starts, and leads to a more stable algorithm.
+
+**Middle Loop.**
+In the middle loop, we find the estimates of $\boldsymbol{\beta}$ by solving the optimization problem () for a fixed $\lambda$. For each iteration of the middle loop, based on the current parameter estimates $\tilde{\boldsymbol{\beta}}$, we form a quadratic approximation to the log-likelihood $f$ using a Taylor expansion:
+\begin{align*}
+f(\boldsymbol{\beta})\approx\ell(\boldsymbol{\beta})&=f(\tilde{\boldsymbol{\beta}})+(\boldsymbol{\beta}-\tilde{\boldsymbol{\beta}})^\top\nabla f(\tilde{\boldsymbol{\beta}})+\frac{1}{2}(\boldsymbol{\beta}-\tilde{\boldsymbol{\beta}})^\top\nabla^2 f(\tilde{\boldsymbol{\beta}})(\boldsymbol{\beta}-\tilde{\boldsymbol{\beta}})\\
+&=f(\tilde{\boldsymbol{\beta}})+[\mathbf{X}(\boldsymbol{\beta}-\tilde{\boldsymbol{\beta}})]^\top(\mathbf{y}-\tilde{\mathbf{p}})-\frac{1}{2}[\mathbf{X}(\boldsymbol{\beta}-\tilde{\boldsymbol{\beta}})]^\top\tilde{\mathbf{W}}\mathbf{X}(\boldsymbol{\beta}-\tilde{\boldsymbol{\beta}})\\
+&=f(\tilde{\boldsymbol{\beta}})+\sum_{i=1}^n(Y_i-\tilde{p}_i)\mathbf{x}_i^\top(\boldsymbol{\beta}-\tilde{\boldsymbol{\beta}} )-\frac{1}{2}\sum_{i=1}^n\tilde{w}_i\left[\mathbf{x}_i^\top(\boldsymbol{\beta}-\tilde{\boldsymbol{\beta}})\right]^2\\
+&=-\frac{1}{2}\sum_{i=1}^n\tilde{w}_i\left\{\left[\mathbf{x}_i^\top(\tilde{\boldsymbol{\beta}}-\boldsymbol{\beta})\right]^2+2\frac{Y_i-\tilde{p}_i}{\tilde{w}_i}\left[\mathbf{x}_i^\top(\tilde{\boldsymbol{\beta}}-\boldsymbol{\beta})\right]\right\}+f(\tilde{\boldsymbol{\beta}})\\
+&=-\frac{1}{2}\sum_{i=1}^n\tilde{w}_i\left[\mathbf{x}_i^\top(\tilde{\boldsymbol{\beta}}-\boldsymbol{\beta})+\frac{Y_i-\tilde{p}_i}{\tilde{w}_i}\right]+\frac{1}{2}\sum_{i=1}^n\tilde{w}_i\left(\frac{Y_i-\tilde{p}_i}{\tilde{w}_i}\right)^2+f(\tilde{\boldsymbol{\beta}}),
+\end{align*}
+where $\tilde{\mathbf{p}}=(\tilde{p}_1,\ldots,\tilde{p}_n)^\top$ and $\tilde{\mathbf{W}}=\mathrm{diag}(\tilde{w}_1,\ldots,\tilde{w}_n)$ are the estimates of $\mathbf{p}$ and $\mathbf{W}$ based on $\tilde{\boldsymbol{\beta}}$.  
+We rewrite the function $\ell(\boldsymbol{\beta})$ as follows:
+\begin{equation}\label{func.lasso}
+\ell(\boldsymbol{\beta})=-\frac{1}{2}\sum_{i=1}^n\tilde{w}_i(\tilde{z}_i-\mathbf{x}_i^\top\boldsymbol{\beta})^2+C(\tilde{\boldsymbol{\beta}}),
+\end{equation}
+where
+$$\tilde{z}_i=\mathbf{x}_i^\top\tilde{\boldsymbol{\beta}}+\frac{Y_i-\tilde{p}_i}{\tilde{w}_i}$$
+is the working response, $\tilde{w}_i$ is the working weight, and $C$ is a function that does not depend on $\boldsymbol{\beta}$.
+
+**Inner Loop.**
+In the inner loop, with fixed $\tilde{w}_i$'s, $\tilde{z}_i$'s, and thus a fixed form of $\ell$ based on the estimates of $\boldsymbol{\beta}$ in the previous iteration of the middle loop, we update the estimates of $\boldsymbol{\beta}$ by solving a modified optimization problem of ():
+$$
+\min_{\boldsymbol{\beta}}\; -\frac{1}{n}\ell(\boldsymbol{\beta})+\lambda\sum_{k=1}^{p}|\beta_k|,
+$$
+which is equivalent to the following penalized weighted least-squares problem
+\begin{equation}\label{opt.inner}
+\min_{\boldsymbol{\beta}}\; \frac{1}{2n}\sum_{i=1}^n\tilde{w}_i(\tilde{z}_i-\mathbf{x}_i^\top\boldsymbol{\beta})^2+\lambda\sum_{k=1}^{p}|\beta_k|.
+\end{equation}
+We use coordinate descent to update the estimates of $\boldsymbol{\beta}$. For each iteration of the inner loop, suppose we have the current estimates $\tilde{\beta}_k$ for $k\ne j$ and we wish to partially optimize with respect to $\beta_j$:
+$$\min_{\beta_j}\; \frac{1}{2n}\sum_{i=1}^n\tilde{w}_i\left(\tilde{z}_i-X_{ij}\beta_j-\sum_{k\ne j}X_{ik}\tilde{\beta}_k\right)^2+\lambda|\beta_j|+\lambda\sum_{k\ne j}|\tilde\beta_k|.$$
+Thus the coordinate descent has updates
+\begin{align*}
+\tilde{\beta}_0&\leftarrow\frac{\sum_{i=1}^n\tilde{w}_{i}(\tilde{z}_{i}-\sum_{k= 1}^pX_{ik}\tilde{\beta}_k)}{\sum_{i=1}^n\tilde{w}_{i}},\\
+\tilde{\beta}_j&\leftarrow\frac{S\left(\frac{1}{n}\sum_{i=1}^n\tilde{w}_{i}X_{ij}(\tilde{z}_{i}-\sum_{k\ne j}X_{ik}\tilde{\beta}_k),\lambda\right)}{\frac{1}{n}\sum_{i=1}^n\tilde{w}_{i}X_{ij}^2},\; j=1,\ldots,p
+\end{align*}
+where $S(z,\gamma)$ is the soft-thresholding operator with value
+$$S(z,\gamma)=\mathrm{sign}(z)(|z|-\gamma)_+=\begin{cases}z-\gamma,&\text{if }z>0\text{ and }\gamma<|z|\\z+\gamma,&\text{if }z<0\text{ and }\gamma<|z|\\0,&\text{if }\gamma\ge|z|\end{cases}$$
+We can then update estimates of $\beta_j$'s repeatedly for $j = 0,1,2,...,p,0,1,2,...$ until
+convergence.
+
+We implement the algorithm in R (see \hyperlink{Code 2}{Code 2}). Here are some important details regarding the implementation of the algorithm: 
+
+* In the outer loop, the starting values of $\boldsymbol\beta$ is set to all 0's. Note that the value of $\lambda_{max}$ is different from the form given in \hyperlink{2}{Friedman et al. (2010)}, which is $\lambda_{max} = \max_j\left|\left \langle \mathbf{x}_{\cdot j}, \mathbf{y} \right \rangle\right|$, where $\mathbf{x}_{\cdot j}$ is the $j$-th column of the design matrix $\mathbf{X}$, for $j=1,\ldots,p$. This is because we also take the update of $\tilde{\beta}_0$ into consideration in the inner loop. (see Theorem  in the appendices) In practice, we add a very small value (e.g., $10^{-10}$) to $\lambda_{max}$ to avoid computational errors that may cause one slope coefficient estimate not equal to zero.
+* In the middle loop, care is taken to avoid coefficients diverging in order to achieve fitted probabilities of 0 or 1. When $\tilde{p}_i$ is within $\delta=10^{-5}$ of 1, we set it to 1, and set the corresponding weight $\tilde{w}_i$ to $\delta$. 0 is treated similarly.
+* The stopping criteria of the middle loop is either the number of iterations of the inner loop is exactly 1 or it reaches a maximum number of iterations $100$.  The stopping criteria of the inner loop is either the difference of the penalized loss function given in () between the two iterations is less than the tolerance $\epsilon=10^{-10}$ or it reaches a maximum number of iterations $1000$.
+
+
+## Five-fold Cross-validation for LASSO
+
+Since the Logistic-Lasso model depends on penalty term for variable selection, we further develop 5-fold cross-validation to select the tuning parameter $\lambda$ to obtain the optimized result.
+
+For the initial $\lambda$ range, we use a sequence of descending $\lambda$'s, starting with the largest $\lambda_1$, which is the maximum value of $\lambda_{max}$ in each training set as given in (). We set $\lambda_{min}=\lambda_1/e^6$, and create 30 $\lambda$ candidates on a log scale. The coefficients of predictors would shrink as $\lambda$ gets larger, as shown in Figure.
+
+To select the optimal tuning parameter $\lambda$, the original data is randomly shuffled and split into five equally sized groups. One of the groups is used as the validation set, while the remaining groups are used as the training set. The path-wise coordinate-wise optimization algorithm is then applied to the training set, and AUC scores are calculated for each $\lambda$ using the validation set. This process is repeated until each of the five groups has been used as the validation set, and the mean AUC for each $\lambda$ is computed.
+
+We select the best $\lambda$ in two ways. One way is that we wrote a function to do the 5-fold cross-validation (see \hyperlink{Code 3}{Code 3}) and the other way is to use the `cv.glmnet` function from the popular package `caret`.
+
+Here we take the $\lambda$ with the greatest mean AUC as the best $\lambda$. Further, we look at the predictors that the best $\lambda$ chooses and take them to re-fit the logistic regression model on the training data which is the 'optimal' model. We also fit a logsitical regression model on the training data using our Newton-Raphson algorithm to get the 'full' model. After that, we compare the two models' prediction performance on the test data in specificity, sensitivity, and AUC.
+
+# Results
+## Five-fold CV for Logistic-LASSO
+We select the best $\lambda$ using our own function and `cv.glmnet` as shown in Figure . Both our cross-validation function and `cv.glmnet` function reach the greatest mean AUC when $\lambda=0.0099322$ as shown in Figure , thus this is the best $\lambda$ we choose. As for the predictors, when $\lambda = \lambda_{best}$, both methods select ten same predictors, which are `texture_mean`, `concave.points_mean`, `radius_se`, `fractal_dimension_se`, `radius_worst`, `texture_worst`, `smoothness_worst`, `concavity_worst`, `concave.points_worst`, and `symmetry_worst`, as shown in Figure.
+
+## Model Comparison
+The ten selected predictors are used to re-fit the logistic regression model as the 'optimal' model, which is then compared with the 'full' model generated by the Newton-Raphson algorithm. The result turns out that the two models differ in prediction performance. The 'optimal' model outperformed the 'full' model with higher specificity, sensitivity, larger AUC, and fewer predictors as shown in Figure  and Figure .
+
+# Discussion
+The main conclusion is that the logistic Lasso model performed better than the full logistic model in this case. Recall that our goal is to build a predictive model to classify each patient's cancer diagnosis accurately according to the information extracted from the images. The specificity and sensitivity should be as high as possible. 
+
+For future work, now that we have selected the ten predictors, we want to know why do these ten matter. What's the interpretation of this model? Do these predictors have any clinical significance? These questions may need to be answered by a cancer expert.
+
+## Group Contributions {-}
+
+\newpage 
+# References {-}
+\hypertarget{1}{Freer, Timothy W., and Michael J. Ulissey. "Screening mammography with computer-aided detection: prospective study of 12,860 patients in a community breast center." Radiology 220.3 (2001): 781-786.}
+
+\hypertarget{2}{Friedman J, Hastie T, Tibshirani R. Regularization Paths for Generalized Linear Models via Coordinate Descent. J Stat Softw. 2010;33(1):1-22. PMID: 20808728; PMCID: PMC2929880.}
+
+\newpage 
+# Appendices {-}
+
+## Figures and Tables {-}
+
