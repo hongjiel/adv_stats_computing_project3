@@ -7,6 +7,7 @@ output:
 ```{r include=FALSE, echo=FALSE}
 library(MASS)
 library(tidyverse)
+library(ggridges)
 ```
 
 **Task 2:** With the estimated model parameters and covariate values, you can calculate the predicted wind speed for each time point using the model equation. This way, you can track the hurricane and compare the predicted wind speeds with the actual wind speeds recorded during the hurricane. Please evaluate how well the estimated Bayesian model can track individual hurricanes.
@@ -164,12 +165,62 @@ hurricane_info = Training %>%
   group_by(ID) %>% 
   slice(1) %>% 
   dplyr::select(ID, Season, Month, Nature) %>% 
-  ungroup(ID)
+  ungroup(ID) %>%
+  mutate(
+    Active = ifelse(Month %in% month.name[8:10], "Active", "Inactive"),
+    Active = factor(Active, levels = c("Inactive", "Active")))
 hurri_res = left_join(hurri_res, hurricane_info, by = "ID")
+```
 
+The distribution of overall RMSE in prediction.
+```{r}
 # density of RMSE
 hist(hurri_res$RMSE, breaks = 20)
+```
 
+
+The difference of RMSE distribution of difference properties.
+```{r}
+# distribution of RMSE on hurricane nature
+ggplot(hurri_res, aes(x = Nature, y = RMSE, fill = Nature)) + 
+  geom_boxplot() + 
+  scale_color_manual(values = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2")) +
+  labs(x = "Nature", y = "RMSE")
+
+ggplot(hurri_res, aes(x = RMSE, fill = Nature)) + 
+  geom_density(alpha = 0.5) + 
+  labs(x = "RMSE", fill = "Nature")
+
+
+# distribution of RMSE on hurricane active months
+ggplot(hurri_res, aes(x = Active, y = RMSE, fill = Active)) + 
+  geom_boxplot() + 
+  scale_color_manual(values = c("#E69F00", "#56B4E9")) +
+  labs(x = "Nature", y = "RMSE")
+
+ggplot(hurri_res, aes(x = RMSE, fill = Active)) + 
+  geom_density(alpha = 0.5) + 
+  labs(x = "RMSE", fill = "Nature")
+
+
+# distribution of RMSE on hurricane season
+ggplot(hurri_res %>% filter(Season < 1970) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
+  geom_density_ridges(scale = 0.8) + 
+  labs(x = "RMSE", y = "Season")
+
+ggplot(hurri_res %>% filter(Season >= 1970 & Season < 1990) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
+  geom_density_ridges(scale = 0.8) + 
+  labs(x = "RMSE", y = "Season")
+
+ggplot(hurri_res %>% filter(Season >= 1990 & Season < 2013) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
+  geom_density_ridges(scale = 0.8) + 
+  labs(x = "RMSE", y = "Season")
+```
+
+
+
+The prediction performance on some specific hurricanes.
+```{r}
 example_hurri = as.data.frame(Y_table[[1]])
 example_hurri$index = 1:nrow(example_hurri)
 
