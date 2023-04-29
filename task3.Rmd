@@ -1,0 +1,57 @@
+---
+title: "Task 2"
+output: 
+    pdf_document
+---
+
+
+**Task 2:** Compute posterior summaries and 95% credible intervals of $\gamma$, the fixed effects associated with the covariates in the model. Using the estimated Bayesian model, answer the following questions: (1) are there seasonal differences in hurricane wind speeds, and (2) is there evidence to support the claim that hurricane wind speeds have been increasing over the years?
+
+Import gamma from task 1 and 2.
+```{r}
+library(MASS)
+library(tidyverse)
+```
+
+We are mainly interested in $\gamma_{Season}$ which is about year change, and $\gamma_{Active}$ which is about active season change compared to inactive season.
+```{r}
+gamma_list <- read.csv("./data/gamma_list.csv")[,1:2] 
+summary(gamma_list)
+```
+
+See the time-series plot to make decision about burn in
+```{r}
+plot(gamma_list[,1], type = "l") # e.g. plot gamma1 (year)              seems not converge, just take the last stable part 8001-9000
+plot(gamma_list[,2], type = "l") # plot gamma2(active season)           seems converge, keep the number of burn in same as year
+```
+
+```{r}
+# set burn in = 8000
+gamma_list = slice(gamma_list, 8001:10000)
+```
+
+```{r}
+# see the histogram of year, some kind of normal
+ggplot(gamma_list, aes(x = Season))+geom_histogram()
+qqnorm(gamma_list$Season)
+qqline(gamma_list$Season) # maybe normal
+shapiro.test(gamma_list$Season) # not normal
+quantiles <- apply(gamma_list, 2, quantile, c(0.025, 0.975)) # use 2.5 and 97.5 quantile to get 95% credible interval
+quantiles
+```
+
+From the result, we can see Season's 95% Credible Interval does not contain 0. However, it's still not enough to support that hurricane wind speeds have been increasing over the years because $\gamma_{year}$ does not converge. As for Active season vs Inactive season, since the 95% Credible Interval contains 0, we may conclude that there are no seasonal difference in hurricane wind speeds.
+
+What about use less burn in to get the 95% Credible Interval?
+```{r}
+gamma_list <- read.csv("./data/gamma_list.csv")[,1:2] 
+gamma_list = slice(gamma_list, 2001:10000)
+quantiles <- apply(gamma_list, 2, quantile, c(0.025, 0.975)) # use 2.5 and 97.5 quantile to get 95% credible interval
+quantiles
+```
+
+The result does not change much.
+
+So for this task, the answer is that there are no seasonal difference in hurricane wind speeds, and also there is no evidence to support the claim that hurricane wind speeds have been increasing over the years.
+
+This is somehow against the common sense of mankind. Because we would naturally think that, because of global warming, the hurricanes are bound to get worse so that the wind speeds should have been increasing. And active seasons, we define as from August to October. The wind speeds of hurricanes in active season should be larger than those in inactive season, but it is not the case.
