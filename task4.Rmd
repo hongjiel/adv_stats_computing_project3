@@ -149,6 +149,7 @@ for (i in 1:length(names(Z))) {
 }
 ```
 
+
 Data visualization for prediction results.
 ```{r}
 hurri_res = data.frame(ID = "example",
@@ -169,6 +170,17 @@ hurricane_info = Training %>%
   mutate(
     Active = ifelse(Month %in% month.name[8:10], "Active", "Inactive"),
     Active = factor(Active, levels = c("Inactive", "Active")))
+
+hurricane_loc = Training %>%
+  distinct(ID, .keep_all = TRUE) %>%
+  select(ID, Latitude, Longitude, Wind.kt) %>%
+  mutate(Start_Lat = Latitude,
+         Start_Lon = Longitude,
+         Start_Speed = Wind.kt) %>%
+  select(ID, Start_Lat, Start_Lon, Start_Speed)
+
+hurricane_info = left_join(hurricane_info, hurricane_loc, by = "ID")
+
 hurri_res = left_join(hurri_res, hurricane_info, by = "ID")
 ```
 
@@ -195,12 +207,19 @@ ggplot(hurri_res, aes(x = RMSE, fill = Nature)) +
 # distribution of RMSE on hurricane active months
 ggplot(hurri_res, aes(x = Active, y = RMSE, fill = Active)) + 
   geom_boxplot() + 
-  scale_color_manual(values = c("#E69F00", "#56B4E9")) +
-  labs(x = "Nature", y = "RMSE")
+  labs(x = "Active month/Inactive month", y = "RMSE")
 
 ggplot(hurri_res, aes(x = RMSE, fill = Active)) + 
   geom_density(alpha = 0.5) + 
-  labs(x = "RMSE", fill = "Nature")
+  labs(x = "RMSE", fill = "Active month/Inactive month")
+
+ggplot(hurri_res, aes(x = Month, y = RMSE, fill = Month)) + 
+  geom_boxplot() + 
+  labs(x = "Month of Year", y = "RMSE")
+
+ggplot(hurri_res, aes(x = RMSE, fill = Month)) + 
+  geom_density(alpha = 0.5) + 
+  labs(x = "RMSE", fill = "Month of Year")
 
 
 # distribution of RMSE on hurricane season
@@ -217,6 +236,27 @@ ggplot(hurri_res %>% filter(Season >= 1990 & Season < 2013) %>% mutate(Season = 
   labs(x = "RMSE", y = "Season")
 ```
 
+Relation between RMSE and the start location information.
+```{r}
+# distribution of RMSE between start information
+ggplot(hurri_res, aes(x = Start_Lon, y = Start_Lat, color = RMSE)) +
+  geom_point(size = 3) +
+  scale_color_gradient(low = "#ADD8E6", high = "#000080") +
+  labs(x = "Longitude", y = "Latitude", color = "RMSE")
+
+ggplot(hurri_res, aes(x = Start_Speed, y = RMSE, color = RMSE)) +
+  geom_point(size = 3) +
+  scale_color_gradient(low = "#ADD8E6", high = "#000080") +
+  labs(x = "Start_Speed", y = "RMSE", color = "RMSE")
+
+ggplot(hurri_res %>% mutate(Start_Speed = factor(Start_Speed)), aes(x = Start_Speed, y = RMSE, fill = Start_Speed)) + 
+  geom_boxplot() + 
+  labs(x = "Start Speed", y = "RMSE")
+
+ggplot(hurri_res %>% mutate(Start_Speed = factor(Start_Speed)), aes(x = RMSE, fill = Start_Speed)) + 
+  geom_density(alpha = 0.5) + 
+  labs(x = "RMSE", fill = "Start Speed")
+```
 
 
 The prediction performance on some specific hurricanes.
