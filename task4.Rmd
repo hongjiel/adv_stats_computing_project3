@@ -17,6 +17,8 @@ origin_df = read.csv("hurrican703.csv")
 
 hurricane_df = origin_df %>% 
   mutate(
+    Active = ifelse(Month %in% month.name[8:10], "Active", "Inactive"),
+    Active = factor(Active, levels = c("Inactive", "Active")),
     Month = factor(Month, levels = month.name[-c(2:3)]), # April-January (January ref, may choose another)
     Nature = as.factor(Nature), # TS,ET,DS,SS,NR (DS ref, may choose another)
     # note: one hurricane can have multiple natures throughout its life
@@ -54,7 +56,6 @@ hurricane_df =
     ID = ifelse(ID == "SUBTROP:UNNAMED.1976", "SUBTROP:UNNAMED.1976(2)", ID)
   )
 
-# data partition, no need to partition data
 Training = hurricane_df
 
 n = length(unique(Training$ID))
@@ -65,7 +66,7 @@ Y = split(Training$Wind.kt, Training$ID) %>%
 X = Training %>% 
   group_by(ID) %>% 
   slice(1) %>% 
-  dplyr::select(ID, Season, Month, Nature) %>% 
+  dplyr::select(ID, Season, Active, Nature) %>% 
   ungroup(ID)
 X = model.matrix(~., X[-1])[,-1]
 
@@ -94,7 +95,7 @@ m = Training %>%
 Import parameters from task 1 & 2.
 ```{r}
 # load parameters
-beta_list = read.csv("./data/B_list_partial.csv")
+beta_list = read.csv("./data/B_list_lastmean.csv")
 mu_list = read.csv("./data/mu_list.csv")
 Sigma_list = read.csv("./data/Sigma_matrix_list.csv")
 gamma_list = read.csv("./data/gamma_list.csv")
@@ -104,7 +105,7 @@ sigma_list = read.csv("./data/sigma_list.csv")$x
 burn = 500 
 # index of useful samples (used for estimates & CIs)
 index = (burn + 1):10000
-beta_sample = beta_list[index,]
+beta_sample = beta_list
 mu_sample = mu_list[index,]
 gamma_sample = gamma_list[index,]
 ```
@@ -112,7 +113,8 @@ gamma_sample = gamma_list[index,]
 Implement the prediction process of wind speed for each hurricane in R.
 ```{r}
 # final parameters to be used
-para_beta = rbind(colMeans(beta_sample))
+para_beta = beta_sample[1,]
+para_beta = as.matrix(para_beta)
 para_mu = rbind(colMeans(mu_sample))
 para_gamma = rbind(colMeans(gamma_sample))
 
@@ -166,11 +168,7 @@ hurricane_info = Training %>%
 hurri_res = left_join(hurri_res, hurricane_info, by = "ID")
 
 # density of RMSE
-hist(hurri_res$RMSE, breaks = 5)
-
-
-# subset of non-NAs
-hurri_res = hurri_res[1:90, ]
+hist(hurri_res$RMSE, breaks = 20)
 
 example_hurri = as.data.frame(Y_table[[1]])
 example_hurri$index = 1:nrow(example_hurri)
@@ -190,7 +188,7 @@ ggplot(example_hurri, aes(x = index)) +
                      values = c("Observed" = "#1E90FF", "Predicted" = "orange"),
                      labels = c("Observation", "Prediction"))
 
-example_hurri = as.data.frame(Y_table[[10]])
+example_hurri = as.data.frame(Y_table[[15]])
 example_hurri$index = 1:nrow(example_hurri)
 # example visualization of index 2 hurricane
 ggplot(example_hurri, aes(x = wind_predict, y = wind_obs)) + 
