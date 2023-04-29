@@ -7,6 +7,8 @@ output:
 ```{r include=FALSE, echo=FALSE}
 library(MASS)
 library(tidyverse)
+library(nlme)
+library(lme4)
 ```
 
 ### Data preprocessing (same as EDA)
@@ -169,6 +171,37 @@ MCMC <- function(B0, mu0, Sigma0, gamma0, sigma0, a, iter) {
 }
 ```
 
+### Fit lmm model to select starting values
+
+```{r}
+df <- hurricane_df %>% 
+  group_by(ID) %>% 
+  mutate(
+    Season = first(Season),
+    Active = first(Active),
+    Nature = first(Nature),
+    wind_pre = lag(Wind.kt),
+    lat_diff = lag(Latitude) - lag(Latitude, 2),
+    long_diff = lag(Longitude) - lag(Longitude, 2),
+    wind_diff = lag(Wind.kt) - lag(Wind.kt, 2),
+  ) %>% 
+  drop_na %>% 
+  dplyr::select(ID, Wind.kt, Season, Active, Nature, wind_pre, lat_diff, long_diff, wind_diff)
+
+lmm <- lmer(Wind.kt ~ Season + Active + Nature + wind_pre + lat_diff + long_diff + wind_diff +
+            (1 + wind_pre + lat_diff + long_diff + wind_diff | ID),
+            data = df)
+summary(lmm)
+
+mu0 <- as.vector(fixed.effects(lmm)[-c(2:7)])
+gamma0 <- as.vector(fixed.effects(lmm)[2:7])
+n <- length(unique(df$ID))
+B0 <- matrix(rep(mu0, n), nrow = 5)
+B0 <- B0 + t(as.matrix(random.effects(lmm)$ID))
+sigma0 <- sd(residuals(lmm))
+Sigma0 <- as.matrix(Matrix::bdiag(VarCorr(lmm))) + diag(5)*0.001 # computationally singular
+```
+
 ### Apply MCMC on training data
 
 1. Please select appropriate $\boldsymbol V$ and $\boldsymbol S$ values.
@@ -187,15 +220,8 @@ nu <- 5 # suggested
 V <- diag(5) # can try other. see requirement
 S <- diag(5) # can try other. see requirement
 
-# initial values of variables (please try other)
-B0 <- matrix(rep(0, 5*n), ncol = n, nrow = 5) # each column is beta_i
-mu0 <- rep(0, 5)
-Sigma0 <- diag(5)
-gamma0 <- rep(0, 6)
-sigma0 <- 5
-
 set.seed(1)
-res <- MCMC(B0, mu0, Sigma0, gamma0, sigma0, a = 0.12, iter = 10000) # try larger values
+res <- MCMC(B0, mu0, Sigma0, gamma0, sigma0, a = 0.1, iter = 10000) # try larger values
 
 # B. beta_i_j: i: ith hurricane, j: 1-5
 B_list <- t(mapply(function(x) x$B, res))
@@ -241,7 +267,7 @@ sigma_list <- read.csv("./data/sigma_list.csv")$x
 
 plot(mu_list[,1], type = "l") # plot mu1 (intercept)
 plot(gamma_list[,1], type = "l") # e.g. plot gamma1 (year)
-plot(Sigma_list[,13], type = "l") # plot Sigma11
+plot(Sigma_list[,1], type = "l") # plot Sigma11
 plot(sigma_list, type = "l") # plot sigma
 ```
 
@@ -252,7 +278,7 @@ plot(sigma_list, type = "l") # plot sigma
 Please select "burn in" numbers based on all time series plots and autocorrelation plots.
 
 ```{r}
-burn <- 5000 # burn in the MC chains. change this based on the resulting plots
+burn <- 8000 # burn in the MC chains. change this based on the resulting plots
 index <- (burn + 1):length(res) # index of useful samples (used for estimates & CIs)
 B_sample <- B_list[index - 5000,]
 mu_sample <- mu_list[index,]
