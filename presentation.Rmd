@@ -1,0 +1,167 @@
+---
+title: |
+  | Bayesian Modeling of Hurricane Trajectories
+author: |
+  | Hongjie Liu, Xicheng Xie, Jiajun Tao, Zijian Xu, Shaohan Chen
+date: "May 1st, 2023"
+header-includes:
+   - \usepackage{bm}
+   - \usepackage{graphicx}
+   - \usepackage{float}
+   - \usepackage{subfigure}
+   - \usepackage{algorithm}
+   - \usepackage{algpseudocode}
+output:
+  beamer_presentation:
+    colortheme: "default"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(caret)
+library(sigmoid) 
+library(qgam) 
+library(pROC)
+
+# magic that automatically adjusts the font size
+def.chunk.hook = knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x = def.chunk.hook(x, options)
+  ifelse(options$size != "normalsize", paste0("\n \\", options$size,"\n\n", x, "\n\n \\normalsize"), x)
+})
+```
+
+
+## Outline
+
+- Background
+
+- Task 1
+
+- Task 2
+
+- Task 3
+
+- Task 4
+
+- Discussions
+
+- Reference
+
+- Q&A
+
+
+## Background
+**Bayesian Modeling of Hurricane Trajectories:**\par
+- In this project we are interested in modeling the hurricane trajectories to forecast the wind speed.
+
+## Background 
+**Data Source:**\par
+- "hurricane703.csv" collected the track data of 703 hurricanes in the North Atlantic area since 1950. For all the storms, their location (longitude & latitude) and maximum wind speed were recorded every 6 hours.
+
+
+## Task 1
+**Objective:**
+
+Let $B = (\beta_1^T, ..., \beta_n^T)$, derive the posterior distribution of the parameters $\Theta = (\mathbf{B}^T, \bm{\mu}^T, \sigma^2, \Sigma)$
+
+
+## Task 2
+**Objective:**\par
+
+Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchical model. Monitor the convergence of the MCMC chains, using diagnostic plots and summary statistics to check for any issues.
+
+
+## Task 2 - MCMC Algorithm
+\tiny
+\begin{algorithm}[H]
+	\caption{MCMC Algorithm}
+	\begin{algorithmic}
+	  \Require $f(\boldsymbol{\beta})$ - target function as given; $\boldsymbol{\beta}_0$ - starting value
+	  \Ensure $\widehat{\boldsymbol{\beta}}$ such that $\widehat{\boldsymbol{\beta}} \approx \arg\max_{\boldsymbol{\beta}}\; f(\boldsymbol{\beta})$
+	  \State $i\leftarrow 0$, where $i$ is the current number of iterations
+	  \State $f(\boldsymbol{\beta}_{-1})\leftarrow -\infty$
+	  \While {convergence criterion is not met}
+	    \State $i \leftarrow i+1$
+	    \State $\mathbf{d}_i\leftarrow-[\nabla^2f(\boldsymbol{\beta}_{i-1})]^{-1}\nabla f(\boldsymbol{\beta}_{i-1})$, where $\mathbf{d}_i$ is the direction in the $i$-th iteration
+	    \State $\lambda_i \leftarrow 1$, where $\lambda_i$ is the multiplier in the $i$-th iteration
+	    \State $\boldsymbol{\beta}_i \leftarrow \boldsymbol{\beta}_{i-1} + \lambda_i\mathbf{d}_i$
+	    \While {$f(\boldsymbol{\beta}_i)\le f(\boldsymbol{\beta}_{i-1})$}
+	      \State $\lambda_i \leftarrow \lambda_i/2$
+	      \State $\boldsymbol{\beta}_i \leftarrow \boldsymbol{\beta}_{i-1} + \lambda_i\mathbf{d}_i$
+	    \EndWhile
+	  \EndWhile
+	  \State $\widehat{\boldsymbol{\beta}}\leftarrow \boldsymbol{\beta}_i$
+	\end{algorithmic}
+\end{algorithm}
+
+
+## Task 2 - MCMC Algorithm R code
+```{r eval=FALSE, size = "tiny"}
+NewtonRaphson <- function(dat, func, start, tol = 1e-8, maxiter = 200) {
+  i <- 0
+  cur <- start
+  stuff <- func(dat, cur)
+  res <- c(0, stuff$f, cur)
+  prevf <- -Inf
+  X <- cbind(rep(1, nrow(dat)), as.matrix(dat[, -1]))
+  y <- dat[, 1]
+  warned <- 0
+  while (abs(stuff$f - prevf) > tol && i < maxiter) {
+    i <- i + 1
+    prevf <- stuff$f
+    prev <- cur
+    d <- -solve(stuff$Hess) %*% stuff$grad
+    cur <- prev + d
+    lambda <- 1
+    maxhalv <- 0
+    while (func(dat, cur)$f < prevf && maxhalv < 50) {
+      maxhalv <- maxhalv + 1
+      lambda <- lambda / 2
+      cur <- prev + lambda * d
+    }
+    stuff <- func(dat, cur)
+    res <- rbind(res, c(i, stuff$f, cur))
+    y_hat <- ifelse(X %*% cur > 0, 1, 0)
+    if (warned == 0 && sum(y - y_hat) == 0) {
+      warning("Complete separation occurs. Algorithm does not converge.")
+      warned <- 1
+    }
+  }
+  colnames(res) <- c("iter", "target_function", "(Intercept)", names(dat)[-1])
+  return(res)
+}
+```
+
+
+## Task 3
+**Objective:**
+
+Compute posterior summaries and 95% credible intervals of $\gamma$, the fixed effects associated with the covariates in the model. Using the estimated Bayesian model, answer the following questions:\par
+(1) Are there seasonal differences in hurricane wind speeds?\par
+(2) Is there evidence to support the claim that hurricane wind speeds have been increasing over the years?
+
+## Task 3 - Parameters Convergence
+\begin{figure}[H] 
+\includegraphics[width=1.0\textwidth]{parameters3.0/mu/parameter_1.png} 
+\end{figure}
+
+## Task 4 - Objective
+**Objective:**
+
+With the estimated model parameters and covariate values, you can calculate the predicted wind speed for each time point using the model equation. This way, you can track the hurricane and compare the predicted wind speeds with the actual wind speeds recorded during the hurricane. Please evaluate how well the estimated Bayesian model can track individual hurricanes.
+
+
+## Discussions
+
+- Parameters Convergence Problem
+
+## Reference
+
+Reference
+
+## Q&A
+
+- Thanks for listening!
