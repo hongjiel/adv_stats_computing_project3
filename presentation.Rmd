@@ -306,6 +306,62 @@ Compute posterior summaries and 95% credible intervals of $\gamma$, the fixed ef
 
 With the estimated model parameters and covariate values, you can calculate the predicted wind speed for each time point using the model equation. This way, you can track the hurricane and compare the predicted wind speeds with the actual wind speeds recorded during the hurricane. Please evaluate how well the estimated Bayesian model can track individual hurricanes.
 
+## Task 4
+**Prediction:**
+Using the parameters after burn-in, we can obtain the predicted value for each hurricane.
+$$Y_{i}(t+6) =\beta_{0,i}+\beta_{1,i}Y_{i}(t) + \beta_{2,i}\Delta_{i,1}(t)+
+\beta_{3,i}\Delta_{i,2}(t) +\beta_{4,i}\Delta_{i,3}(t)  + \mathbf{X}_i{^\top\boldsymbol\gamma}$$ 
+
+**Performance evaluation:**
+For each hurricane, we can evaluate the estimated Bayesian model performance by calculating
+$$
+RMSE = \sqrt{\frac{\sum_{i=1}^{n} (y_i - \hat{y_i})^2}{n}}
+$$
+$$
+R^2 = 1 - \frac{\sum_{i=1}^{n} (y_i - \hat{y_i})^2}{\sum_{i=1}^{n} (y_i - \bar{y})^2}
+$$
+
+## Task 4
+\begin{table}[h]
+\centering
+\small
+\caption{Summary of RMSE and R-squared for selected hurricanes}
+\label{table:summary}
+\begin{tabular}{llcc}
+\hline
+\textbf{ID} & \textbf{Year} & \textbf{RMSE} & \textbf{R-squared} \\ \hline
+ABBY.1960 & 1960 & 8.8804 & 0.7700 \\
+ABBY.1964 & 1964 & 9.6430 & 0.3033 \\
+ABBY.1968 & 1968 & 3.5043 & 0.9360 \\
+ABLE.1950 & 1950 & 3.6755 & 0.9813 \\
+ABLE.1951 & 1951 & 3.4802 & 0.9767 \\
+ABLE.1952 & 1952 & 4.5183 & 0.9583 \\
+AGNES.1972 & 1972 & 5.2483 & 0.8881 \\
+ALBERTO.1982 & 1982 & 8.0473 & 0.7499 \\
+ALBERTO.1988 & 1988 & 2.6121 & 0.7420 \\
+ALBERTO.1994 & 1994 & 4.3941 & 0.8807 \\
+ALBERTO.2000 & 2000 & 3.7896 & 0.9625 \\
+ALBERTO.2006 & 2006 & 4.3591 & 0.7882 \\
+ALBERTO.2012 & 2012 & 3.2193 & 0.8036 \\
+ALEX.1998 & 1998 & 2.9351 & 0.7289 \\
+ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
+\end{tabular}
+\end{table}
+
+## Task 4
+Prediction performance on random chosen example hurricanes.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/b_1_4.png}
+  \caption{Time series prediction plot}
+\end{figure}
+
+## Task 4
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/a_1_4.png}
+  \caption{Prediction vs. observation}
+\end{figure}
 
 ## Discussions
 
