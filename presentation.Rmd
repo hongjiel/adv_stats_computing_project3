@@ -288,8 +288,8 @@ With the estimated model parameters and covariate values, you can calculate the 
 ## Task 4
 **Prediction:**
 Using the parameters after burn-in, we can obtain the predicted value for each hurricane.
-$$Y_{i}(t+6) =\beta_{0,i}+\beta_{1,i}Y_{i}(t) + \beta_{2,i}\Delta_{i,1}(t)+
-\beta_{3,i}\Delta_{i,2}(t) +\beta_{4,i}\Delta_{i,3}(t)  + \mathbf{X}_i{^\top\boldsymbol\gamma}$$ 
+$$\hat Y_{i}(t+6) =\hat \beta_{0,i}+\hat \beta_{1,i}Y_{i}(t) + \hat \beta_{2,i}\Delta_{i,1}(t)+
+\hat \beta_{3,i}\Delta_{i,2}(t) +\hat \beta_{4,i}\Delta_{i,3}(t)  + \mathbf{X}_i {^\top \hat {\boldsymbol\gamma}}$$ 
 
 **Performance evaluation:**
 For each hurricane, we can evaluate the estimated Bayesian model performance by calculating
@@ -341,6 +341,24 @@ Prediction performance on random chosen example hurricanes.
   \includegraphics[width=0.8\textwidth]{predic_plots/a_1_4.png}
   \caption{Prediction vs. observation}
 \end{figure}
+
+## Task 4
+**Performance evaluation:**
+We plot the $RMSE$ and $R^2$ distribution for all the hurricanes
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/rmse1.png}
+  \caption{RMSE distribution}
+\end{figure}
+
+## Task 4
+**Performance evaluation:**
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/R_square.png}
+  \caption{$R^2$ distribution}
+\end{figure}
+
 
 ## Discussions
 
