@@ -18,13 +18,16 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
 library(tidyverse)
 library(caret)
 library(sigmoid) 
 library(qgam) 
 library(pROC)
-
+library(xtable)
+library(kableExtra)
+library(boot) 
+library(ggplot2)
+library(gridExtra)
 # magic that automatically adjusts the font size
 def.chunk.hook = knitr::knit_hooks$get("chunk")
 knitr::knit_hooks$set(chunk = function(x, options) {
@@ -109,14 +112,15 @@ Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchi
 	\end{algorithmic}
 \end{algorithm}
 
-## Task 2 - MCMC Algorithm
+## Task 2 - Starting Values
 \tiny
  \begin{columns}
   \begin{column}{0.4\textwidth}
-    \textbf{Initial Values:}
+    \textbf{Final Initial Value Selection and Core Information of MH Algorithm}
     \begin{itemize}
     \item$\boldsymbol{\beta}_i$: This can be obtained through the random effects term in the lmm model. The random effects term can be added to the fixed effects term to obtain $\boldsymbol{\beta}_i^{(0)}$.
-    \item$\boldsymbol{\mu}$: This can be obtained through the fixed effects term lmm$coefficients[1]$.
+    \item$\boldsymbol{\mu}$: This can be obtained through the fixed effects of windpre, latdiff, longdiff, winddiff term.
+    \item$\boldsymbol{\gamma}$: This can be obtained through the fixed effects of Season, Active Month, and Nature term.
     \item$\sigma^2$: This can be obtained through the model residual sigma0.
     \item$\Sigma^{-1}$: This can be obtained through the VarCorr(lmm) function which returns the covariance matrix of the random effects in the model. The inverse of this matrix can be taken to obtain $\Sigma^{-1^{(0)}}$.
     \end{itemize}
@@ -125,7 +129,7 @@ Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchi
  \centering
    \begin{table}[h]
    \centering
-   \caption{Initial Values}
+   \caption{Initial Value Setting}
    \begin{tabular}{|c|c|}
    \hline
    Parameter & Value \\
@@ -146,7 +150,6 @@ Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchi
   \end{column}
  \end{columns}
  
-    
 ## Task 2 - MCMC Algorithm R code
 ```{r eval=FALSE, size= "tiny"}
 # Gimbble sampling algorithm
@@ -179,8 +182,7 @@ sigma_sample <- function(sigma, B, gamma, a) {
 ```
 
 
-
-## Task 3 - Results Presentation
+## Task 2 - Results Presentation(Time Series Plot for Each Parameters(Burn-In 8000))
 \begin{figure} 
   \centering 
   \subfigure[Mu]{ 
@@ -202,7 +204,90 @@ sigma_sample <- function(sigma, B, gamma, a) {
   \label{para1} 
 \end{figure}
 
+## Task 2 - Results Presentation(Histogram Plot for Mu)
+```{r warning=FALSE, echo=FALSE}
+mu_list <- read.csv("./data/mu_list.csv")
+# Get the last 2000 rows of the mu_list data
+mu_data <- tail(mu_list, 2000)
 
+# Convert the mu_data to a data frame
+mu_df <- as.data.frame(mu_data)
+
+# Set the number of bins for the histogram
+num_bins <- 30
+
+# Define a color palette for the histograms
+colors <- c("red", "green", "blue", "orange", "purple")
+
+# Plot the histograms for each column in mu_data using ggplot
+histograms <- lapply(seq_along(mu_df), function(i) {
+  ggplot(mu_df, aes(x = mu_df[, i])) +
+    geom_histogram(bins = num_bins, color = "black", fill = colors[i], alpha = 0.7) +
+    ggtitle(paste0("mu_", i - 1)) +
+    xlab("Value")
+})
+
+# Combine the histograms into a single plot using gridExtra
+grid.arrange(grobs = histograms, ncol = 3)
+```
+
+##  Task 2 - Results Presentation(Values of $mu$ and $Sigma$)
+\centering
+\tiny
+\textbf{$\hat{\mu}$}
+\[
+\begin{pmatrix}
+  \hat{\mu}_0 & 4.6170057 \\
+  \hat{\mu}_1 & 0.9035517 \\
+  \hat{\mu}_2 & -0.0425631 \\
+  \hat{\mu}_3 & -0.4558512 \\
+  \hat{\mu}_4 & 0.4706897
+\end{pmatrix}
+\]
+
+\centering
+\tiny
+\textbf{$\hat{\Sigma}$}
+\[
+\begin{pmatrix}
+  & 0.7521 & -0.0155 & -0.0860 & 0.0136 & -0.0060\\
+  & -0.0155 & 0.0050 & -0.0023 & -0.0013 & 0.0006\\
+  & -0.0860 & -0.0023 & 0.2705 & -0.0085 & -0.0024\\
+  & 0.0136 & -0.0013 & -0.0085 & 0.1287 & 0.0057\\
+  & -0.0060 & 0.0006 & -0.0024 & 0.0057 & 0.0268
+\end{pmatrix}
+\]
+
+\centering
+\tiny
+\textbf{$\hat{\rho}$}
+\[
+\begin{pmatrix}
+  & 1.0000 & -0.2529 & -0.1907 & 0.0436 & -0.0423\\
+  & -0.2529 & 1.0000 & -0.0635 & -0.0521 & 0.0490\\
+  & -0.1907 & -0.0635 & 1.0000 & -0.0457 & -0.0277\\
+  & 0.0436 & -0.0521 & -0.0457 & 1.0000 & 0.0962\\
+  & -0.0423 & 0.0490 & -0.0277 & 0.0962 & 1.0000
+\end{pmatrix}
+\]
+
+##  Task 2 - Results Presentation(CI of $mu$ and $Beta_mean$)
+```{r warning=FALSE, echo=FALSE}
+data <- data.frame(
+  variable = c("beta_mean_0", "beta_mean_1", "beta_mean_2", "beta_mean_3", "beta_mean_4",
+               "mu_0", "mu_1", "mu_2", "mu_3", "mu_4"),
+  mean = c(-3.6630742, 0.9025330, -0.0585258, -0.4508275, 0.4722175,
+           4.6170057, 0.9035517, -0.0425631, -0.4558512, 0.4706897),
+  lower_CI = c(-4.9777068, 0.8896760, -0.2852565, -0.5631008, 0.4325184,
+               -4.6014745, 0.8399851, -0.2496227, -0.5891481, 0.3979018),
+  upper_CI = c(-1.1445976, 0.9156107, 0.1540752, -0.3268690, 0.5126448,
+               22.2632268, 0.9661758, 0.1581210, -0.3209113, 0.5432620)
+)
+
+
+knitr::kable(data, format = "markdown")
+
+```
 
 ## Task 3
 **Objective:**
