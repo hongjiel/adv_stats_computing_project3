@@ -263,6 +263,20 @@ ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
 \end{tabular}
 \end{table}
 
+## Task 4
+Prediction performance on random chosen example hurricanes.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/b_1_4.png}
+  \caption{Time series prediction plot}
+\end{figure}
+
+## Task 4
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/a_1_4.png}
+  \caption{Prediction vs. observation}
+\end{figure}
 
 ## Discussions
 

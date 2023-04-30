@@ -12,6 +12,7 @@ library(tidyverse)
 library(ggridges)
 library(dplyr)
 library(broom)
+library(gridExtra)
 ```
 
 **Task 2:** With the estimated model parameters and covariate values, you can calculate the predicted wind speed for each time point using the model equation. This way, you can track the hurricane and compare the predicted wind speeds with the actual wind speeds recorded during the hurricane. Please evaluate how well the estimated Bayesian model can track individual hurricanes.
@@ -399,10 +400,53 @@ for (i in 1:5) {
                        labels = c("Observation", "Prediction")) + 
     theme(plot.title = element_text(hjust = 0.5))
   
-  print(graph_a)
-  print(graph_b)
+  ggsave(filename = paste0("predict_plots/", "plot_", i, "_a.png"), plot = graph_a, width = 6, height = 4, dpi = 300)
+  ggsave(filename = paste0("predict_plots/", "plot_", i, "_b.png"), plot = graph_b, width = 6, height = 4, dpi = 300)
+
 }
 
-as.data.frame(Y_table_set[[1*5]])
+
+```
+
+```{r}
+ID_name<-as.matrix(Training%>% 
+  group_by(ID) %>% 
+  slice(1) %>% dplyr::select(ID))
+
+
+plot_list_a <- list()
+plot_list_b <- list()
+
+for (i in 1:5) {
+  example_hurri = as.data.frame(Y_table_set[[i*5]])
+  example_hurri$index = 1:nrow(example_hurri)
+  
+  # example visualization of example hurricanes
+  graph_a = ggplot(example_hurri, aes(x = wind_predict, y = wind_obs)) + 
+    geom_point() + 
+    geom_smooth(method = "lm", se = FALSE) + 
+    labs(title = ID_name[i*5,], x = "Prediction", y = "Observation") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  graph_b = ggplot(example_hurri, aes(x = index)) +
+    geom_point(aes(y = wind_obs, color = "Observed")) +
+    geom_point(aes(y = wind_predict, color = "Predicted")) +
+    geom_line(aes(y = wind_obs, color = "Observed")) +
+    geom_line(aes(y = wind_predict, color = "Predicted")) +
+    labs(title = ID_name[i*5,], x = "Time Index", y = "Wind Speed") +
+    scale_color_manual(name = "Legend",
+                       values = c("Observed" = "#1E90FF", "Predicted" = "orange"),
+                       labels = c("Observation", "Prediction")) + 
+    theme(plot.title = element_text(hjust = 0.5))
+  plot_list_a[[i]] <- graph_a
+  plot_list_b[[i]] <- graph_b
+
+}
+
+grid_a <- grid.arrange(grobs = plot_list_a[c(1:4)], ncol = 2, nrow=2)
+grid_b <- grid.arrange(grobs = plot_list_b[c(1:4)], ncol = 2, nrow=2)
+
+ggsave(filename = "predic_plots/a_1_4.png",grid_a,width = 6, height = 4, dpi = 300)
+ggsave(filename = "predic_plots/b_1_4.png",grid_b,width = 6, height = 4, dpi = 300)
 ```
 
