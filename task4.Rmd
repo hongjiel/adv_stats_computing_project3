@@ -183,11 +183,11 @@ Visual_Table = function(Y_table_input){
   
   hurricane_loc = Training %>%
     distinct(ID, .keep_all = TRUE) %>%
-    select(ID, Latitude, Longitude, Wind.kt) %>%
+    dplyr::select(ID, Latitude, Longitude, Wind.kt) %>%
     mutate(Start_Lat = Latitude,
            Start_Lon = Longitude,
            Start_Speed = Wind.kt) %>%
-    select(ID, Start_Lat, Start_Lon, Start_Speed)
+    dplyr::select(ID, Start_Lat, Start_Lon, Start_Speed)
   
   hurricane_info = left_join(hurricane_info, hurricane_loc, by = "ID")
   
@@ -206,13 +206,13 @@ Visual_Table = function(Y_table_input){
 hurri_res = Visual_Table(Y_table_set)
 
 hurri_res_brief = hurri_res %>%
-  select(c(1:3)) %>%
+  dplyr::select(c(1:3)) %>%
   head(15)
 
 write.csv(hurri_res_brief, "data/prediction_brief.csv", row.names = FALSE)
 write.csv(hurri_res, "data/prediction_all.csv", row.names = FALSE)
 
-hurri_res_brief %>%
+hurri_res_brief %>%m
   knitr::kable(digits = 4)
 ```
 
@@ -402,5 +402,7 @@ for (i in 1:5) {
   print(graph_a)
   print(graph_b)
 }
+
+as.data.frame(Y_table_set[[1*5]])
 ```
 
