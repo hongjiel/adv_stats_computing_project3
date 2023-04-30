@@ -8,6 +8,7 @@ output:
 library(tidyverse)
 library(data.table)
 library(maps)
+library(ggplot2)
 ```
 
 
@@ -76,6 +77,121 @@ mapMonth <- map + facet_wrap(~ Month) +
                  seasonrange, ")\n")) 
 mapMonth
 ```
+
+### EDA 
+```{r}
+dt_long <- dt %>%
+    dplyr::group_by(ID) %>% 
+    mutate(Wind_prev = lag(Wind.kt, 1),
+           Lat_change = Latitude - lag(Latitude, 1),
+           Long_change = Longitude - lag(Longitude, 1),
+           Wind_prev_prev = lag(Wind.kt, 2)) %>% 
+    mutate(Wind_change = Wind_prev - Wind_prev_prev) %>% 
+  drop_na()
+```
+
+
+### Count of hurricanes in each month
+```{r}
+storms_month_name <-distinct(group_by(select(dt_long, Month, ID), Month))
+
+storms_month_name %>% 
+  dplyr::group_by(Month) %>% 
+  mutate(Month =  factor(Month, levels = month.name)) %>%  
+  ggplot(aes(x = Month)) +
+  geom_bar()+
+  labs(
+    x = "Month",
+    y = "Hurricanes count"
+  )
+```
+
+### Average Speed (knot) of Hurricanes in Each Month
+
+```{r }
+dt_long %>% 
+  ggplot(aes(x=Month,y=Wind.kt,group=Month,color=Month))+
+  geom_boxplot()+
+  labs(y="Wind speed")
+
+
+dt_long %>% 
+  dplyr::group_by(Month) %>% 
+  mutate(avg_speed = mean(Wind.kt)) %>% 
+  distinct(Month, avg_speed) %>% 
+  mutate(Month =  factor(Month, levels = month.name))%>% 
+  ggplot(aes(x = Month, y = avg_speed)) +
+  geom_point()+
+  scale_y_continuous("Average Speed (knot)")
+```
+
+### - Count of Hurricanes in Each Year
+
+```{r }
+storms_season_name = distinct(group_by(select(dt_long, Season, ID), Season))
+ggplot(data = storms_season_name) + 
+  geom_bar(aes(x = Season)) +
+  scale_x_continuous("Year")+
+  labs(x="Hurricanes count")
+```
+
+### average speed in each year
+
+```{r}
+dt_long %>% 
+  dplyr::group_by(Season) %>% 
+  mutate(avg_speed = mean(Wind.kt)) %>% 
+  distinct(Season, avg_speed) %>% 
+  ggplot(aes(x = Season, y = avg_speed)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  scale_y_continuous("Average Speed (knot)") +
+  scale_x_continuous("Year") 
+```
+
+### Hurricanes count in each nature
+```{r}
+dt_long %>% select(Nature,ID) %>% 
+  group_by(Nature) %>% 
+  summarize(n_obs = n()) %>%
+  mutate(Nature = fct_reorder(Nature,n_obs)) %>%
+  ggplot(aes(x = Nature,y = n_obs,fill=Nature)) + 
+  geom_bar(stat = "identity") +
+  labs(x = "Nature", y = "Hurricanes count")
+```
+### Wind speed density in each nature
+```{r}
+dt_long %>% 
+  ggplot(aes(x=Wind.kt,group=Nature,color=Nature))+
+  geom_density()
+```
+
+### Wind speed boxplot in Nature
+```{r}
+dt_long %>% 
+  ggplot(aes(x=Nature,y=Wind.kt,group=Nature,color=Nature))+
+  geom_boxplot()+
+  labs(y="Wind speed")
+
+
+dt_long %>% 
+  dplyr::group_by(Nature) %>% 
+  mutate(avg_speed = mean(Wind.kt)) %>% 
+  distinct(Nature, avg_speed) %>% 
+  ggplot(aes(x = Nature, y = avg_speed)) +
+  geom_point() +
+  scale_y_continuous("Average Speed (knot)") 
+# + ggtitle("Average Speed (knot) of Hurricanes in Each Nature")
+```
+
+
+
+
+
+
+
+
+
 
 ### Data wrangling
 
