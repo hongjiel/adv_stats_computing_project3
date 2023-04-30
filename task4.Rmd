@@ -4,10 +4,14 @@ output:
     pdf_document
 ---
 
-```{r include=FALSE, echo=FALSE}
+```{r setup, include=FALSE, echo=FALSE}
+options(warn = -1, message = FALSE)
+
 library(MASS)
 library(tidyverse)
 library(ggridges)
+library(dplyr)
+library(broom)
 ```
 
 **Task 2:** With the estimated model parameters and covariate values, you can calculate the predicted wind speed for each time point using the model equation. This way, you can track the hurricane and compare the predicted wind speeds with the actual wind speeds recorded during the hurricane. Please evaluate how well the estimated Bayesian model can track individual hurricanes.
@@ -57,6 +61,7 @@ hurricane_df =
     ID = ifelse(ID == "SUBTROP:UNNAMED.1976", "SUBTROP:UNNAMED.1976(2)", ID)
   )
 
+# data partition, no need to partition data
 Training = hurricane_df
 
 n = length(unique(Training$ID))
@@ -91,153 +96,264 @@ m = Training %>%
   .$obs
 ```
 
-### Solution
-
+## Prediction Functions
 Import parameters from task 1 & 2.
 ```{r}
 # load parameters
 beta_list = read.csv("./data/B_list_lastmean.csv")
-mu_list = read.csv("./data/mu_list.csv")
-Sigma_list = read.csv("./data/Sigma_matrix_list.csv")
 gamma_list = read.csv("./data/gamma_list.csv")
-sigma_list = read.csv("./data/sigma_list.csv")$x
-
-# burn in the MC chains. change this based on the resulting plots
-burn = 500 
-# index of useful samples (used for estimates & CIs)
-index = (burn + 1):10000
-beta_sample = beta_list
-mu_sample = mu_list[index,]
-gamma_sample = gamma_list[index,]
 ```
 
 Implement the prediction process of wind speed for each hurricane in R.
 ```{r}
-# final parameters to be used
-para_beta = beta_sample[1,]
-para_beta = as.matrix(para_beta)
-para_mu = rbind(colMeans(mu_sample))
-para_gamma = rbind(colMeans(gamma_sample))
-
-# prediction function
-Windspeed_Predict = function(index_hurricane, index_time){
-  predict_speed = 
-    Z[[index_hurricane]][index_time,] %*% para_beta[((index_hurricane - 1) * 5 + 1):((index_hurricane - 1) * 5 + 5)] + 
-    (X %*% t(para_gamma))[index_hurricane, ]
-  return(predict_speed)
-}
-
-# functional test
-Windspeed_Predict(1, 26)
-
-# initialize prediction table
-Y_table = split(Training$Wind.kt, Training$ID) %>% 
-  lapply(function(x) x[-c(1:2)]) %>%
-  lapply(as.data.frame) %>%
-  lapply(function(df) {
-    df$wind_obs = df$`X[[i]]`
-    df$wind_predict = df$wind_obs
-    df = as.matrix(df)
-    subset(df, select = c("wind_obs", "wind_predict"))
-  })
-
-# updating prediction table
-for (i in 1:length(names(Z))) {
- for (j in 1:nrow(Z[[i]])) {
- Y_table[[i]][, 2][j] = Windspeed_Predict(i, j)
-  } 
+Speed_Prediction = function(beta, gamma, burn_bindex, burn_times){
+  # final parameters to be used
+  # the rows of beta_sample means the last 5000, 4000, 3000, 2000 and 1000
+  # burn in the MC chains. change this based on the resulting plots
+  # if burn-in is set to 8000, then we set burn_bindex as 4 to pick the 4th row of beta_sample
+  # index is the useful samples (used for estimates & CIs)
+  para_beta = beta[burn_bindex,]
+  para_beta = as.matrix(para_beta)
+  index = (burn_times + 1):10000
+  gamma_sample = gamma[index, ]
+  para_gamma = rbind(colMeans(gamma_sample))
+  
+  # prediction function
+  Windspeed_Predict = function(index_hurricane, index_time){
+    predict_speed = 
+      Z[[index_hurricane]][index_time,] %*% para_beta[((index_hurricane - 1) * 5 + 1):((index_hurricane - 1) * 5 + 5)] + 
+      (X %*% t(para_gamma))[index_hurricane, ]
+    return(predict_speed)
+  }
+  
+  # initialize prediction table
+  Y_table = split(Training$Wind.kt, Training$ID) %>% 
+    lapply(function(x) x[-c(1:2)]) %>%
+    lapply(as.data.frame) %>%
+    lapply(function(df) {
+      df$wind_obs = df$`X[[i]]`
+      df$wind_predict = df$wind_obs
+      df = as.matrix(df)
+      subset(df, select = c("wind_obs", "wind_predict"))
+    })
+  
+  # updating prediction table
+  for (i in 1:length(names(Z))) {
+   for (j in 1:nrow(Z[[i]])) {
+   Y_table[[i]][, 2][j] = Windspeed_Predict(i, j)
+    } 
+  }
+  return(Y_table)
 }
 ```
 
 
-Data visualization for prediction results.
 ```{r}
-hurri_res = data.frame(ID = "example",
-                       RMSE = 0)
-for (i in 1:length(names(Z))) {
-  RMSE = sqrt(mean((Y_table[[i]][,1] - Y_table[[i]])^2))
-  new_row = c(names(Z)[i], RMSE)
-  hurri_res = rbind(hurri_res, new_row)
+Y_table_set = Speed_Prediction(beta = beta_list, gamma = gamma_list, burn_bindex = 4, burn_times = 8000)
+
+Visual_Table = function(Y_table_input){
+  Y_table = Y_table_input
+  hurri_res = data.frame(ID = "example",
+                         RMSE = 0,
+                         R_squared = 0)
+  for (i in 1:length(names(Z))) {
+    # calculate
+    RMSE = sqrt(mean((Y_table[[i]][,1] - Y_table[[i]][,2])^2))
+    # calculate R^2
+    y = Y_table[[i]][,1]
+    y_hat = Y_table[[i]][,2]
+    mean_y = mean(y)
+    SSR = sum((y_hat - y)^2)
+    SST = sum((y - mean_y)^2)
+    R_squared = 1 - SSR/SST
+    new_row = c(names(Z)[i], RMSE, R_squared)
+    hurri_res = rbind(hurri_res, new_row)
+  }
+  
+  hurri_res = hurri_res[-1, ]
+  hurri_res$RMSE = as.numeric(hurri_res$RMSE)
+  hurricane_info = Training %>% 
+    group_by(ID) %>% 
+    slice(1) %>% 
+    dplyr::select(ID, Season, Month, Nature) %>% 
+    ungroup(ID) %>%
+    mutate(
+      Active = ifelse(Month %in% month.name[8:10], "Active", "Inactive"),
+      Active = factor(Active, levels = c("Inactive", "Active")))
+  
+  hurricane_loc = Training %>%
+    distinct(ID, .keep_all = TRUE) %>%
+    select(ID, Latitude, Longitude, Wind.kt) %>%
+    mutate(Start_Lat = Latitude,
+           Start_Lon = Longitude,
+           Start_Speed = Wind.kt) %>%
+    select(ID, Start_Lat, Start_Lon, Start_Speed)
+  
+  hurricane_info = left_join(hurricane_info, hurricane_loc, by = "ID")
+  
+  hurri_res = left_join(hurri_res, hurricane_info, by = "ID")
+  
+  hurri_res$R_squared = as.numeric(hurri_res$R_squared)
+  
+  return(hurri_res)
 }
-
-hurri_res = hurri_res[-1, ]
-hurri_res$RMSE = as.numeric(hurri_res$RMSE)
-hurricane_info = Training %>% 
-  group_by(ID) %>% 
-  slice(1) %>% 
-  dplyr::select(ID, Season, Month, Nature) %>% 
-  ungroup(ID) %>%
-  mutate(
-    Active = ifelse(Month %in% month.name[8:10], "Active", "Inactive"),
-    Active = factor(Active, levels = c("Inactive", "Active")))
-
-hurricane_loc = Training %>%
-  distinct(ID, .keep_all = TRUE) %>%
-  select(ID, Latitude, Longitude, Wind.kt) %>%
-  mutate(Start_Lat = Latitude,
-         Start_Lon = Longitude,
-         Start_Speed = Wind.kt) %>%
-  select(ID, Start_Lat, Start_Lon, Start_Speed)
-
-hurricane_info = left_join(hurricane_info, hurricane_loc, by = "ID")
-
-hurri_res = left_join(hurri_res, hurricane_info, by = "ID")
 ```
 
-The distribution of overall RMSE in prediction.
+## Visualization Analysis
+
+### Summary Table
 ```{r}
-# density of RMSE
-hist(hurri_res$RMSE, breaks = 20)
+hurri_res = Visual_Table(Y_table_set)
+
+hurri_res_brief = hurri_res %>%
+  select(c(1:3)) %>%
+  head(15)
+
+write.csv(hurri_res_brief, "data/prediction_brief.csv", row.names = FALSE)
+write.csv(hurri_res, "data/prediction_all.csv", row.names = FALSE)
+
+hurri_res_brief %>%
+  knitr::kable(digits = 4)
 ```
 
 
-The difference of RMSE distribution of difference properties.
+### Overall RMSE prediction performance.
+```{r}
+# overall density of RMSE
+ggplot(hurri_res, aes(x = RMSE)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.25, alpha = 0.8, color = "grey") +
+  geom_density(size = 0.5, color = "blue", lty = 1) + 
+  scale_x_continuous(breaks = seq(0, 20, by = 2)) + 
+  labs(title = "Histogram of Wind Speed RMSE of Different Hurricanes", x = "Hurricane Wind Speed RMSE", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+### Overall R-squared performance.
+```{r warning = FALSE}
+# overall density of R-squared
+ggplot(hurri_res %>% filter(0 <= R_squared & R_squared <= 1), aes(x = R_squared)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.01, alpha = 0.8, color = "grey") +
+  geom_density(size = 0.5, color = "blue", lty = 1) + 
+  labs(title = "Histogram of Wind Speed R-squared of Different Hurricanes", x = "Hurricane Wind Speed R-squared", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+### Difference of overall RMSE using different numbers of burn-in.
+
+Result shows that there is not obvious difference here.
+```{r include = FALSE}
+# density of RMSE using different burn-in times
+Y_table_5000 = Speed_Prediction(beta = beta_list, gamma = gamma_list, burn_bindex = 1, burn_times = 5000)
+Y_table_6000 = Speed_Prediction(beta = beta_list, gamma = gamma_list, burn_bindex = 2, burn_times = 6000)
+Y_table_7000 = Speed_Prediction(beta = beta_list, gamma = gamma_list, burn_bindex = 3, burn_times = 7000)
+Y_table_8000 = Speed_Prediction(beta = beta_list, gamma = gamma_list, burn_bindex = 4, burn_times = 8000)
+Y_table_9000 = Speed_Prediction(beta = beta_list, gamma = gamma_list, burn_bindex = 5, burn_times = 9000)
+
+RMSE_5000 = Visual_Table(Y_table_5000) %>%
+  mutate(group = "5000")
+RMSE_6000 = Visual_Table(Y_table_6000) %>%
+  mutate(group = "6000")
+RMSE_7000 = Visual_Table(Y_table_7000) %>%
+  mutate(group = "7000")
+RMSE_8000 = Visual_Table(Y_table_8000) %>%
+  mutate(group = "8000")
+RMSE_9000 = Visual_Table(Y_table_9000) %>%
+  mutate(group = "9000")
+
+ggplot(RMSE_5000, aes(x = RMSE)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.25, alpha = 0.8, color = "grey") +
+  geom_density(size = 0.5, color = "blue", lty = 1) + 
+  labs(title = "Histogram of Wind Speed RMSE using Burn-in = 5000", x = "Hurricane Wind Speed RMSE", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(RMSE_6000, aes(x = RMSE)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.25, alpha = 0.8, color = "grey") +
+  geom_density(size = 0.5, color = "blue", lty = 1) + 
+  scale_x_continuous(breaks = seq(0, 20, by = 2)) + 
+  labs(title = "Histogram of Wind Speed RMSE using Burn-in = 6000", x = "Hurricane Wind Speed RMSE", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(RMSE_7000, aes(x = RMSE)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.25, alpha = 0.8, color = "grey") +
+  geom_density(size = 0.5, color = "blue", lty = 1) + 
+  scale_x_continuous(breaks = seq(0, 20, by = 2)) + 
+  labs(title = "Histogram of Wind Speed RMSE using Burn-in = 7000", x = "Hurricane Wind Speed RMSE", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(RMSE_8000, aes(x = RMSE)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.25, alpha = 0.8, color = "grey") +
+  geom_density(size = 0.5, color = "blue", lty = 1) + 
+  scale_x_continuous(breaks = seq(0, 20, by = 2)) + 
+  labs(title = "Histogram of Wind Speed RMSE using Burn-in = 8000", x = "Hurricane Wind Speed RMSE", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(RMSE_9000, aes(x = RMSE)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.25, alpha = 0.8, color = "grey") +
+  geom_density(size = 0.5, color = "blue", lty = 1) + 
+  scale_x_continuous(breaks = seq(0, 20, by = 2)) + 
+  labs(title = "Histogram of Wind Speed RMSE using Burn-in = 9000", x = "Hurricane Wind Speed RMSE", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+### The difference of RMSE distribution of difference properties.
 ```{r}
 # distribution of RMSE on hurricane nature
 ggplot(hurri_res, aes(x = Nature, y = RMSE, fill = Nature)) + 
   geom_boxplot() + 
   scale_color_manual(values = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2")) +
-  labs(x = "Nature", y = "RMSE")
+  labs(title = "RMSE vs. Nature", x = "Nature", y = "RMSE") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
 
 ggplot(hurri_res, aes(x = RMSE, fill = Nature)) + 
   geom_density(alpha = 0.5) + 
-  labs(x = "RMSE", fill = "Nature")
+  labs(title = "RMSE vs. Nature", x = "RMSE", fill = "Nature") + 
+  theme(plot.title = element_text(hjust = 0.5))
 
 
 # distribution of RMSE on hurricane active months
 ggplot(hurri_res, aes(x = Active, y = RMSE, fill = Active)) + 
   geom_boxplot() + 
-  labs(x = "Active month/Inactive month", y = "RMSE")
+  labs(title = "RMSE vs. Active/Inactive Month", x = "Active month/Inactive month", y = "RMSE") + 
+  theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(hurri_res, aes(x = RMSE, fill = Active)) + 
   geom_density(alpha = 0.5) + 
-  labs(x = "RMSE", fill = "Active month/Inactive month")
+  labs(title = "RMSE vs. Active/Inactive Month", x = "RMSE", fill = "Active month/Inactive month") + 
+  theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(hurri_res, aes(x = Month, y = RMSE, fill = Month)) + 
   geom_boxplot() + 
-  labs(x = "Month of Year", y = "RMSE")
+  labs(title = "RMSE vs. Month of Year", x = "Month of Year", y = "RMSE") + 
+  theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(hurri_res, aes(x = RMSE, fill = Month)) + 
   geom_density(alpha = 0.5) + 
-  labs(x = "RMSE", fill = "Month of Year")
+  labs(title = "RMSE vs. Month of Year",x = "RMSE", fill = "Month of Year") + 
+  theme(plot.title = element_text(hjust = 0.5))
 
 
 # distribution of RMSE on hurricane season
 ggplot(hurri_res %>% filter(Season < 1970) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
   geom_density_ridges(scale = 0.8) + 
-  labs(x = "RMSE", y = "Season")
+  labs(title = "RMSE from start year to 1970",x = "RMSE", y = "Season") + 
+  theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(hurri_res %>% filter(Season >= 1970 & Season < 1990) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
   geom_density_ridges(scale = 0.8) + 
-  labs(x = "RMSE", y = "Season")
+  labs(title = "RMSE from 1970 to 1990", x = "RMSE", y = "Season") + 
+  theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(hurri_res %>% filter(Season >= 1990 & Season < 2013) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
   geom_density_ridges(scale = 0.8) + 
-  labs(x = "RMSE", y = "Season")
+  labs(title = "RMSE from 1990 to 2013", x = "RMSE", y = "Season") + 
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
-Relation between RMSE and the start location information.
-```{r}
+### Relation between RMSE and the start location information.
+(not finally included since there is not much useful information in there)
+```{r eval = FALSE, include = FALSE}
 # distribution of RMSE between start information
 ggplot(hurri_res, aes(x = Start_Lon, y = Start_Lat, color = RMSE)) +
   geom_point(size = 3) +
@@ -259,41 +375,32 @@ ggplot(hurri_res %>% mutate(Start_Speed = factor(Start_Speed)), aes(x = RMSE, fi
 ```
 
 
-The prediction performance on some specific hurricanes.
+### Prediction performance on some specific example hurricanes.
 ```{r}
-example_hurri = as.data.frame(Y_table[[1]])
-example_hurri$index = 1:nrow(example_hurri)
-
-# example visualization of index 1 hurricane
-ggplot(example_hurri, aes(x = wind_predict, y = wind_obs)) + 
-  geom_point() + 
-  geom_smooth(method = "lm", se = FALSE)
-
-ggplot(example_hurri, aes(x = index)) +
-  geom_point(aes(y = wind_obs, color = "Observed")) +
-  geom_point(aes(y = wind_predict, color = "Predicted")) +
-  geom_line(aes(y = wind_obs, color = "Observed")) +
-  geom_line(aes(y = wind_predict, color = "Predicted")) +
-  labs(title = "Observation vs. Prediction", x = "Time Index", y = "Wind Speed") +
-  scale_color_manual(name = "Legend",
-                     values = c("Observed" = "#1E90FF", "Predicted" = "orange"),
-                     labels = c("Observation", "Prediction"))
-
-example_hurri = as.data.frame(Y_table[[15]])
-example_hurri$index = 1:nrow(example_hurri)
-# example visualization of index 2 hurricane
-ggplot(example_hurri, aes(x = wind_predict, y = wind_obs)) + 
-  geom_point() + 
-  geom_smooth(method = "lm", se = FALSE)
-
-ggplot(example_hurri, aes(x = index)) +
-  geom_point(aes(y = wind_obs, color = "Observed")) +
-  geom_point(aes(y = wind_predict, color = "Predicted")) +
-  geom_line(aes(y = wind_obs, color = "Observed")) +
-  geom_line(aes(y = wind_predict, color = "Predicted")) +
-  labs(title = "Observation vs. Prediction", x = "Time Index", y = "Wind Speed") +
-  scale_color_manual(name = "Legend",
-                     values = c("Observed" = "#1E90FF", "Predicted" = "orange"),
-                     labels = c("Observation", "Prediction"))
+for (i in 1:5) {
+  example_hurri = as.data.frame(Y_table_set[[i*5]])
+  example_hurri$index = 1:nrow(example_hurri)
+  
+  # example visualization of example hurricanes
+  graph_a = ggplot(example_hurri, aes(x = wind_predict, y = wind_obs)) + 
+    geom_point() + 
+    geom_smooth(method = "lm", se = FALSE) + 
+    labs(title = paste("Observation vs. Prediction of", "Example Hurricane", i), x = "Prediction", y = "Observation") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  graph_b = ggplot(example_hurri, aes(x = index)) +
+    geom_point(aes(y = wind_obs, color = "Observed")) +
+    geom_point(aes(y = wind_predict, color = "Predicted")) +
+    geom_line(aes(y = wind_obs, color = "Observed")) +
+    geom_line(aes(y = wind_predict, color = "Predicted")) +
+    labs(title = paste("Fitting Performance", "Example Hurricane", i), x = "Time Index", y = "Wind Speed") +
+    scale_color_manual(name = "Legend",
+                       values = c("Observed" = "#1E90FF", "Predicted" = "orange"),
+                       labels = c("Observation", "Prediction")) + 
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  print(graph_a)
+  print(graph_b)
+}
 ```
 
