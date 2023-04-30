@@ -62,10 +62,74 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 - "hurricane703.csv" collected the track data of 703 hurricanes in the North Atlantic area since 1950. For all the storms, their location (longitude & latitude) and maximum wind speed were recorded every 6 hours.
 
 
-## Task 1
-**Objective:**
 
-Let $B = (\beta_1^T, ..., \beta_n^T)$, derive the posterior distribution of the parameters $\Theta = (\mathbf{B}^T, \bm{\mu}^T, \sigma^2, \Sigma)$
+## Bayesian Model
+Let $Y_{i}(t)$ denote the wind speed of the $i$th hurricane at time $t$ (in hours) since the hurricane began. The following Bayesian model was suggested to model the wind speed of the $i$th hurricane 6 hours later:
+$$\begin{aligned}
+Y_{i}(t+6) =&\ \beta_{0,i}+\beta_{1,i}Y_{i}(t) + \beta_{2,i}\Delta_{i,1}(t)+
+\beta_{3,i}\Delta_{i,2}(t) +\beta_{4,i}\Delta_{i,3}(t)  \\
+&\ + \mathbf{X}_i^\top\boldsymbol\gamma+ \epsilon_{i}(t),\end{aligned}$$
+where 
+
+* $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$: changes of latitude, longitude and wind speed between $t-6$ and $t$, with random coefficients $\boldsymbol{\beta}_{i} =  (\beta_{0,i},\beta_{1,i},...,\beta_{4,i})^\top$
+* $\mathbf{X}_i = (x_{i,1},\ldots,x_{i,6})^\top$: covariates with fixed effects $\boldsymbol\gamma$, where
+  - $x_{i,1}$: the calendar year of the $i$-th hurricane
+  - $x_{i,2}$: indicator variable of the month in active season (August-October) when the $i$-th hurricane started
+  - $x_{i,3},\ldots,x_{i,6}$: indicator variables of the type (ES, NR, SS, TS) of the $i$-th hurricane
+* $\epsilon_{i,t}\sim N(0,\sigma^2)$, independent across $t$
+
+## Task 1 - Prior Distributions
+
+**Objective:** Let $\mathbf{B}= (\boldsymbol{\beta}_{1}^\top,...,\boldsymbol{\beta}_{n}^\top)^\top$, derive the posterior distribution of the parameters $\Theta=(\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\Sigma,\boldsymbol\gamma^\top,\sigma)$.
+
+We assume that
+
+* $\boldsymbol{\beta}_{i} \overset{i.i.d.}{\sim} N(\boldsymbol{\mu}, \boldsymbol{\Sigma})$
+
+* $\boldsymbol{\mu}\sim N(\boldsymbol{0},\boldsymbol{V})$
+
+* $\boldsymbol{\Sigma}$: an inverse-Wishart distribution with d.f. $\nu$ and scale matrix $\boldsymbol{S}$
+
+* $\boldsymbol\gamma\sim N(\boldsymbol 0,0.05^2\boldsymbol I_{6})$
+
+* $\sigma$: a half-Cauchy distribution with scale parameter 10
+
+We set $\boldsymbol{V} =\boldsymbol{S} = \boldsymbol I_{5}$, and $\nu=5$.
+
+## Task 1 - Joint Prior Distribution of Parameters
+Let $n$ denote the number of hurricanes in the dataset. The prior distribution of $\Theta=(\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\Sigma,\boldsymbol\gamma^\top,\sigma)$ is given by
+$$\begin{aligned}
+\pi(\Theta)=&\ \pi(\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma)\\
+=&\ \pi(\mathbf{B}^\top\mid\boldsymbol{\mu}^\top,\boldsymbol{\Sigma})\pi(\boldsymbol{\mu}^\top,\boldsymbol{\Sigma})\pi(\boldsymbol\gamma)\pi(\sigma)\\
+=&\ \left(\prod_{i=1}^n\pi(\boldsymbol\beta_i^\top\mid\boldsymbol{\mu}^\top,\boldsymbol{\Sigma})\right)\pi(\boldsymbol{\mu})\pi(\boldsymbol{\Sigma})\pi(\boldsymbol\gamma)\pi(\sigma)\\
+\propto &\ |\boldsymbol{\Sigma}|^{-n/2}\exp\left(-\frac{1}{2}\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)\right)\\
+&\ \times\exp\left(-\frac{1}{2}\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu\right)\\
+&\ \times|\boldsymbol{\Sigma}|^{-(\nu+6)/2}\exp\left(-\frac{1}{2}\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})\right)\\
+&\ \times \exp\left(-\frac{1}{2}\cdot400\boldsymbol\gamma^\top\boldsymbol\gamma\right)\times\frac{I(\sigma>0)}{1+(\sigma/10)^2}.
+\end{aligned}$$
+
+## Task 1 - Likelihood
+
+Let $m_i$ denote the number of observations and $\boldsymbol{Y}_i=(Y_{i,1},\ldots Y_{i,m_i})^\top$ denote the wind speed data of the $i$-th hurricane (excluding the first and second observations), where $Y_{i,k}=Y_i(6k+6)$. Denote $\boldsymbol{Y}=(\boldsymbol{Y}_1^\top,\boldsymbol{Y}_2^\top,\ldots,\boldsymbol{Y}_n^\top)^\top$, and $\mathbf Z_{i,k}=(1,Y_{i,k},\Delta_{i,1}(6k+6),\Delta_{i,2}(6k+6),\Delta_{i,3}(6k+6))^\top$.
+
+Given that
+$$Y_{i,j}\mid (\boldsymbol\beta_i^\top,\boldsymbol\gamma^\top,\sigma)\sim N(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i + \mathbf{X}_i^\top\boldsymbol\gamma,\sigma^2),$$
+we have
+$$\begin{aligned}
+L(\Theta\mid\boldsymbol{Y}^\top)=&\ \prod_{i=1}^n\prod_{j=1}^{m_i}L(\Theta\mid Y_{i,j})\\
+=&\ \prod_{i=1}^n\prod_{j=1}^{m_i}\left[\frac{1}{\sqrt{2\pi}\sigma}\exp\left(-\frac{(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2}{2\sigma^2}\right)\right].
+\end{aligned}$$
+
+## Task 1 - Joint Posterior Distribution of Parameters
+
+$$\begin{aligned}
+\pi(\Theta\mid \boldsymbol{Y}^\top)
+\propto &\ L(\Theta\mid\boldsymbol{Y}^\top)\pi(\Theta)\\
+\propto &\ \frac{I(\sigma>0)\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}|\boldsymbol{\Sigma}|^{-(n+\nu+6)/2}\\
+&\ \times\exp\Bigg[-\frac{1}{2}\Bigg(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu\\
+&\quad\quad\quad\quad\quad\quad\ +\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})+400\|\boldsymbol\gamma\|_2^2\Bigg)\Bigg]\\
+&\ \times \exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).
+\end{aligned}$$
 
 
 ## Task 2
