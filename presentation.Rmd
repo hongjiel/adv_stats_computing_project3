@@ -77,40 +77,31 @@ Let $B = (\beta_1^T, ..., \beta_n^T)$, derive the posterior distribution of the 
 Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchical model. Monitor the convergence of the MCMC chains, using diagnostic plots and summary statistics to check for any issues.
 
 ## Task 2 - MCMC Algorithm
-\tiny
 \begin{algorithm}[H]
-	\caption{MCMC Algorithm (Part 1)}
-	\begin{algorithmic}
-	  \Require $\mathbf{Y}$; $\boldsymbol{\beta}_0, \boldsymbol{\mu}_0, \boldsymbol{\Sigma}_0, \sigma_0, \gamma_0$
-	  \Ensure $\widehat{\boldsymbol{\beta}}, \widehat{\boldsymbol{\mu}}, \widehat{\boldsymbol{\Sigma}}, \widehat{\sigma}, \widehat{\gamma}$ $\approx$ $\boldsymbol{\beta}, \boldsymbol{\mu}, \boldsymbol{\Sigma}, \sigma, \gamma$
-	  \State $i\leftarrow 0$, where $i$ is the current number of iterations
-	  \While {iteration times is not met}
-	    \State $i \leftarrow i+1$
-	    \State Gibble sampling for $\boldsymbol{\beta}$ $${\boldsymbol{\beta}^{(k)}} \sim \mathcal{N}(\boldsymbol{\beta}|\mathbf{Y},\boldsymbol{\mu}^{(k-1)},\boldsymbol{\Sigma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{\gamma}^{(k-1)})$$
-	    \State Gibble sampling for $\boldsymbol{\mu}$ $$\boldsymbol{\mu}^{(k)} \sim \mathcal{N}(\boldsymbol{\mu}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\Sigma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{\gamma}^{(k-1)})$$
-	    \State Gibble sampling for $\Sigma$ $$\boldsymbol{\Sigma}^{(k)} \sim \mathcal{Wishart}(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \sigma^{(k-1)}, \gamma^{(k-1)})$$
-	    \State Gibble sampling for $\boldsymbol{\gamma}$ $\boldsymbol{\gamma}^{(k)} \sim p(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, , \Sigma^{(k)},\sigma^{(k-1)})$
-	    \algstore{myalg}
+  \fontsize{5pt}{4pt}\selectfont
+ \caption{MCMC Algorithm (Part 1)}
+ \begin{algorithmic}
+   \Require $\mathbf{Y}$; $\boldsymbol{\beta}_0, \boldsymbol{\mu}_0, \boldsymbol{\Sigma}_0, \sigma_0, \gamma_0$
+   \Ensure $\widehat{\boldsymbol{\beta}}, \widehat{\boldsymbol{\mu}}, \widehat{\boldsymbol{\Sigma}}, \widehat{\sigma}, \widehat{\gamma}$ $\approx$ $\boldsymbol{\beta}, \boldsymbol{\mu}, \boldsymbol{\Sigma}, \sigma, \gamma$
+   \State $i\leftarrow 0$, where $i$ is the current number of iterations
+   \While {iteration times is not met}
+     \State $i \leftarrow i+1$
+     \State Gibbs sampling for $\boldsymbol{\beta}$\par ${\boldsymbol{\beta}^{(k)}} \sim \mathcal{N}(\boldsymbol{\beta}|\mathbf{Y},\boldsymbol{\mu}^{(k-1)},\boldsymbol{\Sigma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{\gamma}^{(k-1)})$
+     \State Gibbs sampling for $\boldsymbol{\mu}$\par $\boldsymbol{\mu}^{(k)} \sim \mathcal{N}(\boldsymbol{\mu}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\Sigma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{\gamma}^{(k-1)})$
+     \State Gibbs sampling for $\Sigma$\par $\boldsymbol{\Sigma}^{(k)} \sim \mathcal{Wishart}(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \sigma^{(k-1)}, \gamma^{(k-1)})$
+     \State Gibbs sampling for $\boldsymbol{\gamma}$ $\boldsymbol{\gamma}^{(k)} \sim p(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, , \Sigma^{(k)},\sigma^{(k-1)})$
+     \State Metropolis-Hastings for $\sigma$
+      \State Propose a new value $\sigma^*$ from a normal distribution with mean $\sigma^{(k-1)}$ and a small variance.
+      \State Compute the acceptance ratio\par
+      $\gamma = \frac{p(\gamma^{(k)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)},\sigma^{(k)})q(\gamma^{(k-1)}|\gamma^{(k)})}{p(\gamma^{(k-1)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)}, \sigma^{(k)})q(\gamma^{(k)}|\gamma^{(k-1)})}$
+      \State Generate a random number $u$ from a uniform distribution between 0 and 1.
+      \State If $u \leq r$, set $\sigma^{(k)} = \sigma^*$, otherwise set $\sigma^{(k)} = \sigma^{(k-1)}$.
+      \State 
+    \EndWhile
+  \State 
   \end{algorithmic}
 \end{algorithm}
 
-## Task 2 - MCMC Algorithm
-\tiny
-\begin{algorithm}[H]
-	\caption{MCMC Algorithm (Part 2)}
-	\begin{algorithmic}
-	    \algrestore{myalg}
-	    \State Metropolis-Hastings for $\sigma$
-        \State Propose a new value $\sigma^*$ from a normal distribution with mean $\sigma^{(k-1)}$ and a small variance.
-        \State Compute the acceptance ratio
-        $$\gamma = \frac{p(\gamma^{(k)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)},\sigma^{(k)})q(\gamma^{(k-1)}|\gamma^{(k)})}{p(\gamma^{(k-1)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)}, \sigma^{(k)})q(\gamma^{(k)}|\gamma^{(k-1)})}$$
-        \State Generate a random number $u$ from a uniform distribution between 0 and 1.
-        \State If $u \leq r$, set $\sigma^{(k)} = \sigma^*$, otherwise set $\sigma^{(k)} = \sigma^{(k-1)}$.
-	      \State 
-	  \EndWhile
-	  \State 
-	\end{algorithmic}
-\end{algorithm}
 
 ## Task 2 - Starting Values
 \tiny
