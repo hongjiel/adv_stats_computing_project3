@@ -73,67 +73,123 @@ Let $B = (\beta_1^T, ..., \beta_n^T)$, derive the posterior distribution of the 
 
 Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchical model. Monitor the convergence of the MCMC chains, using diagnostic plots and summary statistics to check for any issues.
 
-
 ## Task 2 - MCMC Algorithm
 \tiny
 \begin{algorithm}[H]
 	\caption{MCMC Algorithm}
 	\begin{algorithmic}
-	  \Require $f(\boldsymbol{\beta})$ - target function as given; $\boldsymbol{\beta}_0$ - starting value
-	  \Ensure $\widehat{\boldsymbol{\beta}}$ such that $\widehat{\boldsymbol{\beta}} \approx \arg\max_{\boldsymbol{\beta}}\; f(\boldsymbol{\beta})$
+	  \Require $\mathbf{Y}$; $\boldsymbol{\beta}_0, \boldsymbol{\mu}_0, \boldsymbol{\Sigma}_0, \sigma_0, \gamma_0$
+	  \Ensure $\widehat{\boldsymbol{\beta}}, \widehat{\boldsymbol{\mu}}, \widehat{\boldsymbol{\Sigma}}, \widehat{\sigma}, \widehat{\gamma}$ $\approx$ $\boldsymbol{\beta}, \boldsymbol{\mu}, \boldsymbol{\Sigma}, \sigma, \gamma$
 	  \State $i\leftarrow 0$, where $i$ is the current number of iterations
 	  \State $f(\boldsymbol{\beta}_{-1})\leftarrow -\infty$
 	  \While {convergence criterion is not met}
 	    \State $i \leftarrow i+1$
-	    \State $\mathbf{d}_i\leftarrow-[\nabla^2f(\boldsymbol{\beta}_{i-1})]^{-1}\nabla f(\boldsymbol{\beta}_{i-1})$, where $\mathbf{d}_i$ is the direction in the $i$-th iteration
-	    \State $\lambda_i \leftarrow 1$, where $\lambda_i$ is the multiplier in the $i$-th iteration
-	    \State $\boldsymbol{\beta}_i \leftarrow \boldsymbol{\beta}_{i-1} + \lambda_i\mathbf{d}_i$
-	    \While {$f(\boldsymbol{\beta}_i)\le f(\boldsymbol{\beta}_{i-1})$}
-	      \State $\lambda_i \leftarrow \lambda_i/2$
-	      \State $\boldsymbol{\beta}_i \leftarrow \boldsymbol{\beta}_{i-1} + \lambda_i\mathbf{d}_i$
+	    \State Gibble sampling for $\boldsymbol{\beta}$ $${\boldsymbol{\beta}^{(k)}} \sim \mathcal{N}(\boldsymbol{\beta}|\mathbf{Y},\boldsymbol{\mu}^{(k-1)},\boldsymbol{\Sigma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{\gamma}^{(k-1)})$$
+	    \State Gibble sampling for $\boldsymbol{\mu}$ $$\boldsymbol{\mu}^{(k)} \sim \mathcal{N}(\boldsymbol{\mu}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\Sigma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{\gamma}^{(k-1)})$$
+	    \State Gibble sampling for $\Sigma$ $$\boldsymbol{\Sigma}^{(k)} \sim \mathcal{N}(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \sigma^{(k-1)}, \gamma^{(k-1)})$$
+	    \State Gibble sampling for $\boldsymbol{\gamma}$ $\boldsymbol{\gamma}^{(k)} \sim p(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, , \Sigma^{(k)},\sigma^{(k-1)})$
+	    \While 
+	      \State 
+	      \State 
 	    \EndWhile
 	  \EndWhile
-	  \State $\widehat{\boldsymbol{\beta}}\leftarrow \boldsymbol{\beta}_i$
+	  \State 
 	\end{algorithmic}
 \end{algorithm}
 
 
 ## Task 2 - MCMC Algorithm R code
 ```{r eval=FALSE, size = "tiny"}
-NewtonRaphson <- function(dat, func, start, tol = 1e-8, maxiter = 200) {
-  i <- 0
-  cur <- start
-  stuff <- func(dat, cur)
-  res <- c(0, stuff$f, cur)
-  prevf <- -Inf
-  X <- cbind(rep(1, nrow(dat)), as.matrix(dat[, -1]))
-  y <- dat[, 1]
-  warned <- 0
-  while (abs(stuff$f - prevf) > tol && i < maxiter) {
-    i <- i + 1
-    prevf <- stuff$f
-    prev <- cur
-    d <- -solve(stuff$Hess) %*% stuff$grad
-    cur <- prev + d
-    lambda <- 1
-    maxhalv <- 0
-    while (func(dat, cur)$f < prevf && maxhalv < 50) {
-      maxhalv <- maxhalv + 1
-      lambda <- lambda / 2
-      cur <- prev + lambda * d
-    }
-    stuff <- func(dat, cur)
-    res <- rbind(res, c(i, stuff$f, cur))
-    y_hat <- ifelse(X %*% cur > 0, 1, 0)
-    if (warned == 0 && sum(y - y_hat) == 0) {
-      warning("Complete separation occurs. Algorithm does not converge.")
-      warned <- 1
-    }
+B_sample <- function(mu, Sigma, gamma, sigma) {
+  Sigma.inv <- solve(Sigma)
+  B_mean_cov <- function(i) {
+    cov <- solve(Sigma.inv + 1/sigma^2 * t(Z[[i]]) %*% Z[[i]])
+    mean <- cov %*% (Sigma.inv %*% mu + 1/sigma^2 * colSums((Y[[i]] - (X[i,] %*% gamma)[,]) * Z[[i]]))
+    list(mean = mean, cov = cov)
   }
-  colnames(res) <- c("iter", "target_function", "(Intercept)", names(dat)[-1])
+  mean_cov_list <- lapply(1:n, B_mean_cov)
+  B <- sapply(mean_cov_list, function(x) {mvrnorm(mu = x$mean, Sigma = x$cov)})
+  return(B)
+}
+
+mu_sample <- function(B, Sigma) {
+  cov <- V %*% solve(n*V + Sigma)
+  mean <- cov %*% rowSums(B)
+  mu <- mvrnorm(mu = mean, Sigma = cov)
+  return(mu)
+}
+
+Sigma_sample <- function(B, mu) {
+  Sigma.inv <- rWishart(n = 1, Sigma = solve(S + (B - mu) %*% t(B - mu)), df = n + nu)[,,]
+  Sigma <- solve(Sigma.inv)
+  return(Sigma)
+}
+
+gamma_sample <- function(B, sigma) {
+  X_trans <- sqrt(m) * X
+  cov <- solve(400*diag(6) + 1/sigma^2 * t(X_trans) %*% X_trans)
+  total <- rowSums(sapply(1:n, function(i) sum(Z[[i]] %*% B[,i] - Y[[i]]) * X[i,]))
+  mean <- cov %*% (-1/sigma^2 * total)
+  gamma <- mvrnorm(mu = mean, Sigma = cov)
+  return(gamma)
+}
+
+# MH algorithm (random walk)
+sigma_sample <- function(sigma, B, gamma, a) {
+  sigma_new <- sigma + (runif(1) - 0.5) * 2 * a # candidate sigma
+  if (sigma_new <= 0) {
+    return(sigma)
+  }
+  RSS <- sum(sapply(1:n, function(i) sum((Y[[i]] - Z[[i]] %*% B[,i] - (X[i,] %*% gamma)[,])^2)))
+  log_kernal_ratio <- -sum(m) * log(sigma_new/sigma) +
+    log(1 + (sigma/10)^2) - log(1 + (sigma_new/10)^2) -
+    0.5 * (1/sigma_new^2 - 1/sigma^2) * RSS
+  log_prob <- min(0, log_kernal_ratio)
+  sigma <- ifelse(log_prob > log(runif(1)), sigma_new, sigma)
+  return(sigma)
+}
+
+MCMC <- function(B0, mu0, Sigma0, gamma0, sigma0, a, iter) {
+  B <- B0
+  mu <- mu0
+  Sigma <- Sigma0
+  gamma <- gamma0
+  sigma <- sigma0
+  res <- vector("list", iter)
+  for (i in 1:iter) {
+    B <- B_sample(mu, Sigma, gamma, sigma)
+    mu <- mu_sample(B, Sigma)
+    Sigma <- Sigma_sample(B, mu)
+    gamma <- gamma_sample(B, sigma)
+    sigma <- sigma_sample(sigma, B, gamma, a)
+    res[[i]] <- list(B = B, mu = mu, Sigma = Sigma, gamma = gamma, sigma = sigma)
+  }
   return(res)
 }
 ```
+
+## Task 3 - Results Presentation
+\begin{figure} 
+  \centering 
+  \subfigure[Mu]{ 
+    \label{sub1}
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_parameters_time_series_plot.png} 
+  } 
+  \subfigure[Sigma]{ 
+    \label{sub2} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_parameters_time_series_plot.png} 
+  } 
+  \subfigure[Gamma]{ 
+    \label{sub3} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_parameters_time_series_plot.png} 
+  } 
+  \subfigure[sigma]{ 
+    \label{sub4} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_parameters_time_series_plot.png} 
+  } 
+  \label{para1} 
+\end{figure}
+
 
 
 ## Task 3
