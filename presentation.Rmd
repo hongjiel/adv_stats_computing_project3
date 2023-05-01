@@ -53,8 +53,6 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 
 - Discussions
 
-- Reference
-
 - Q&A
 
 
@@ -135,7 +133,8 @@ Y_{i}(t+6) =&\ \beta_{0,i}+\beta_{1,i}Y_{i}(t) + \beta_{2,i}\Delta_{i,1}(t)+
 &\ + \mathbf{X}_i^\top\boldsymbol\gamma+ \epsilon_{i}(t),\end{aligned}$$
 where 
 
-* $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$: changes of latitude, longitude and wind speed between $t-6$ and $t$, with random coefficients $\boldsymbol{\beta}_{i} =  (\beta_{0,i},\beta_{1,i},...,\beta_{4,i})^\top$
+* $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$: changes of latitude, longitude and wind speed between $t-6$ and $t$
+  - random coefficients $\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{4,i})^\top$
 * $\mathbf{X}_i = (x_{i,1},\ldots,x_{i,6})^\top$: covariates with fixed effects $\boldsymbol\gamma$, where
   - $x_{i,1}$: the calendar year of the $i$-th hurricane
   - $x_{i,2}$: indicator variable of the month in active season (August-October) when the $i$-th hurricane started
@@ -201,45 +200,45 @@ $$\begin{aligned}
 
 Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchical model. Monitor the convergence of the MCMC chains, using diagnostic plots and summary statistics to check for any issues.
 
-## Task 2 - Posterior Distribution (part1)
-**Conditional Posterior for each parameter**
-\fontsize{5pt}{3pt}\selectfont
-$$\begin{aligned}\\
-&\ \boldsymbol\beta_i\mid (\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)\\
-\sim&\ N\left(\left(\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}\left(\boldsymbol{\Sigma}^{-1}\boldsymbol\mu+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf{X}_i^\top\boldsymbol\gamma)\mathbf Z_{i,j-1}\right), \left(\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}\right).\end{aligned}$$
+## Task 2 - Conditional Posterior Distribution for Each Parameter
+\fontsize{9pt}{8pt}\selectfont
+- $\boldsymbol\beta_i\mid (\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)$:  
+a multivariate normal distribution with mean vector
+$$\left(\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}\left(\boldsymbol{\Sigma}^{-1}\boldsymbol\mu+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf{X}_i^\top\boldsymbol\gamma)\mathbf Z_{i,j-1}\right)$$
+and covariance matrix $$\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top$$
+- $\boldsymbol{\mu}\mid (\mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)$:  
+a multivariate normal distribution with mean vector $$\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)$$ and covariance matrix $$\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}$$
 
-\fontsize{5pt}{3pt}\selectfont
-$$\boldsymbol{\mu}\mid (\mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)\sim N\left(\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right), \boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\right).$$
+## Task 2 - Conditional Posterior Distribution for Each Parameter
+\fontsize{9pt}{8pt}\selectfont
+- $\boldsymbol{\Sigma}\mid (\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y})$:  
+an inverse-Wishart distribution with d.f. $(n+\nu)$ and scale matrix  $$\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top$$
+- $\boldsymbol\gamma\mid (\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma,\boldsymbol{Y}^\top)$:  
+a multivariate normal distribution with mean vector $$\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\left(-\frac{1}{\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-Y_{i,j})\mathbf{X}_i\right)$$ and covariance matrix $$\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}$$
 
-\fontsize{5pt}{3pt}\selectfont
-$$\boldsymbol{\Sigma}\mid (\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)\sim \mathcal{W}^{-1}\left(\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top, n+\nu\right).$$
-\fontsize{5pt}{3pt}\selectfont
-$$\begin{aligned}
-&\ \boldsymbol\gamma\mid (\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma,\boldsymbol{Y}^\top)\sim N\left(\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\left(-\frac{1}{\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-Y_{i,j})\mathbf{X}_i\right),\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\right).
-\end{aligned}$$
-\fontsize{5pt}{3pt}\selectfont
-$$\pi(\sigma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\boldsymbol{Y}^\top)\propto
-I(\sigma>0)\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).$$
+## Task 2 - Conditional Posterior Distribution for Each Parameter
+\fontsize{9pt}{8pt}\selectfont
+- $\sigma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\boldsymbol{Y}^\top)$:  
+$$\begin{aligned}&\ \pi(\sigma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\boldsymbol{Y}^\top)\\
+\propto&\ I(\sigma>0)\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).\end{aligned}$$
 
 ## Task 2 - MCMC Algorithm
 \begin{algorithm}[H]
-  \fontsize{7pt}{5pt}\selectfont
+  \fontsize{8pt}{6pt}\selectfont
  \caption{MCMC Algorithm}
  \begin{algorithmic}
    \Require $\mathbf{Y}$; $\boldsymbol{\beta}_0, \boldsymbol{\mu}_0, \boldsymbol{\Sigma}_0, \sigma_0, \gamma_0$
-   \State $i\leftarrow 0$, where $i$ is the current number of iterations
-   \For{$i=1$ to $iternumber$}
-     \State $i \leftarrow i+1$
-     \State Gibbs sampling for $\boldsymbol{\beta}$\par ${\boldsymbol{\beta}^{(k)}} \sim \mathcal{N}(\boldsymbol{\beta}|\mathbf{Y},\boldsymbol{\mu}^{(k-1)},\boldsymbol{\Sigma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{\gamma}^{(k-1)})$
-     \State Gibbs sampling for $\boldsymbol{\mu}$\par $\boldsymbol{\mu}^{(k)} \sim \mathcal{N}(\boldsymbol{\mu}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\Sigma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{\gamma}^{(k-1)})$
-     \State Gibbs sampling for $\Sigma$\par $\boldsymbol{\Sigma}^{(k)} \sim Wishart(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \sigma^{(k-1)}, \gamma^{(k-1)})$
-     \State Gibbs sampling for $\boldsymbol{\gamma}$\par $\boldsymbol{\gamma}^{(k)} \sim p(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, , \Sigma^{(k)},\sigma^{(k-1)})$
-     \State Metropolis-Hastings for $\sigma$
-      \State Propose a conditional distribution of new value $\sigma^*$ from a Uniform distribution, a=0.1.
+   \For{$k=1$ to $10000$}
+     \State Gibbs sampling for $\boldsymbol{\beta}_i$'s\par generate ${\boldsymbol{\beta}_i^{(k)}}$ from $\pi(\boldsymbol\beta_i\mid \boldsymbol{\mu}^{(k-1)},\boldsymbol{\Sigma}^{(k-1)},\boldsymbol\gamma^{(k-1)},\sigma^{(k-1)},\boldsymbol{Y}^\top)$
+     \State Gibbs sampling for $\boldsymbol{\mu}$\par generate $\boldsymbol{\mu}^{(k)}$ from $\pi(\boldsymbol{\mu}|\mathbf B^{(k)}, \boldsymbol{\Sigma}^{(k-1)},\boldsymbol{\gamma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{Y}^\top)$
+     \State Gibbs sampling for $\boldsymbol\Sigma$\par generate $\boldsymbol{\Sigma}^{(k)}$ from $\pi(\boldsymbol{\Sigma}| \mathbf B^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol\gamma^{(k-1)}, \sigma^{(k-1)}, \mathbf{Y}^\top)$
+     \State Gibbs sampling for $\boldsymbol{\gamma}$\par generate $\boldsymbol{\gamma}^{(k)}$ from $\pi(\boldsymbol{\gamma}| \mathbf B^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol\Sigma^{(k)},\sigma^{(k-1)}, \mathbf{Y}^\top)$
+     \State Metropolis-Hastings algorithm for $\sigma$
+      \State Propose a conditional distribution of new value $\sigma^*$ from $\text{Uniform}[\sigma^{(k-1)}-a,\sigma^{(k-1)}+a]$, where $a$ is the proposed step
       \State Compute the acceptance ratio\par
-      $\lambda = \frac{p(\sigma^{(k)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)},\gamma^{(k)})q(\sigma^{(k-1)}|\sigma^{(k)})}{p(\sigma^{(k-1)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)}, \gamma^{(k)})q(\sigma^{(k)}|\sigma^{(k-1)})}$\par
+      $\lambda=\frac{\pi(\sigma^*|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)},\boldsymbol\gamma^{(k)})}{\pi(\sigma^{(k-1)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)}, \boldsymbol\gamma^{(k)})}$\par
       $\alpha=\min(1,\lambda)$\par
-      \State Generate a random number $u$ from a uniform distribution between 0 and 1.
+      \State Generate a random number $u$ from $\text{Uniform}(0,1)$
       \State If $u \leq \alpha$, set $\sigma^{(k)} = \sigma^*$, otherwise set $\sigma^{(k)} = \sigma^{(k-1)}$.
     \EndFor
   \State 
@@ -254,10 +253,10 @@ I(\sigma>0)\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}
     \textbf{Final Initial Value Selection and Core Information of MH Algorithm}
     \begin{itemize}
     \item$\boldsymbol{\beta}_i$: This can be obtained through the random effects term in the lmm model. The random effects term can be added to the fixed effects term to obtain $\boldsymbol{\beta}_i^{(0)}$.
-    \item$\boldsymbol{\mu}$: This can be obtained through the fixed effects of windpre, latdiff, longdiff, winddiff term.
+    \item$\boldsymbol{\mu}$: This can be obtained through the fixed effects of intercept, windpre, latdiff, longdiff, winddiff term.
     \item$\boldsymbol{\gamma}$: This can be obtained through the fixed effects of Year, Active Month, and Nature term.
-    \item$\sigma^2$: This can be obtained through the model residual sigma0.
-    \item$\Sigma$: This can be obtained through the VarCorr(lmm) function which returns the covariance matrix of the random effects in the model $\Sigma^{^{(0)}}$.
+    \item$\sigma$: This can be obtained through the model residual.
+    \item$\boldsymbol\Sigma$: This can be obtained through the `VarCorr` function which returns the covariance matrix of the random effects in the model $\boldsymbol\Sigma^{^{(0)}}$.
     \end{itemize}
   \end{column}
  \begin{column}{0.6\textwidth}
@@ -269,16 +268,16 @@ I(\sigma>0)\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}
    \hline
    Parameter & Value \\
    \hline
-   $\boldsymbol{\mu}$ & $(24.25, 0.94, -0.02, -0.24, 0.47)$ \\
-   $\boldsymbol{\gamma}$ & $(-0.01, 0.35, 0.28, 0.37, 0.12, 0.08)$ \\
-   $\Sigma$ & $\begin{pmatrix}
+   $\boldsymbol{\mu}^\top$ & $(24.25, 0.94, -0.02, -0.24, 0.47)$ \\
+   $\boldsymbol{\gamma}^\top$ & $(-0.01, 0.35, 0.28, 0.37, 0.12, 0.08)$ \\
+   $\boldsymbol\Sigma$ & $\begin{pmatrix}
    0.358 & -0.010 & 0.039 & 0.121 & 0.028 \\
    -0.01 & 0.001 & -0.003 & -0.005 & 0.002 \\
    0.039 & -0.003 & 0.043 & 0.034 & -0.019 \\
    0.121 & -0.005 & 0.034 & 0.069 & 0.003 \\
    0.028 & 0.002 & -0.019 & 0.003 & 0.017 \\
     \end{pmatrix}$ \\
-   $\sigma^2$ & 5.27 \\
+   $\sigma$ & 5.27 \\
    \hline
    \end{tabular}
    \end{table}
@@ -287,7 +286,7 @@ I(\sigma>0)\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}
  
 ## Task 2 - MCMC Algorithm R code
 ```{r eval=FALSE, size= "tiny"}
-# Gimbble sampling algorithm
+# Gibbs sampling
 B_sample <- function(mu, Sigma, gamma, sigma) {
   Sigma.inv <- solve(Sigma)
   B_mean_cov <- function(i) {
@@ -316,23 +315,23 @@ sigma_sample <- function(sigma, B, gamma, a) {
 }
 ```
 
-## Task 2 - Results Presentation(hyperparameters)
-\begin{center}
-search window $a=0.1$, burnin $=8000$, accept ratio $\alpha=0.1$
-\end{center}
+## Task 2 - Results Presentation (hyperparameters)
+- search window $a=0.1$
+- burn-in $=8000$
+- resulting acceptance rate $=0.418$
 
-## Task 2 - Results Presentation(Parameters(Burn-In 8000))
+## Task 2 - Results Presentation (Parameters (Burn-In 8000))
 \begin{figure} 
   \centering 
-  \subfigure[Mu]{ 
+  \subfigure[mu]{ 
     \label{sub1}
     \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_parameters_time_series_plot.png} 
   } 
-  \subfigure[Sigma]{ 
+  \subfigure[Sigma matrix]{ 
     \label{sub2} 
     \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_parameters_time_series_plot.png} 
   } 
-  \subfigure[Gamma]{ 
+  \subfigure[gamma]{ 
     \label{sub3} 
     \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_parameters_time_series_plot.png} 
   } 
@@ -343,7 +342,7 @@ search window $a=0.1$, burnin $=8000$, accept ratio $\alpha=0.1$
   \label{para1} 
 \end{figure}
 
-## Task 2 - Results Presentation(Histogram Plot for Mu)
+## Task 2 - Results Presentation (Histogram Plots for $\boldsymbol \mu$)
 ```{r warning=FALSE, echo=FALSE}
 mu_list <- read.csv("./data/mu_list.csv")
 # Get the last 2000 rows of the mu_list data
@@ -370,10 +369,10 @@ histograms <- lapply(seq_along(mu_df), function(i) {
 grid.arrange(grobs = histograms, ncol = 3)
 ```
 
-##  Task 2 - Results Presentation(Parameters Estimation of $mu$ and $Sigma$)
+##  Task 2 - Results Presentation (Parameter Estimations of $\boldsymbol \mu$ and $\boldsymbol \Sigma$)
 \centering
 \tiny
-\textbf{$\hat{\mu}$}
+\textbf{$\hat{\boldsymbol\mu}$}
 \[
 \begin{pmatrix}
   \hat{\mu}_0 & -3.6594881 \\
@@ -386,7 +385,7 @@ grid.arrange(grobs = histograms, ncol = 3)
 
 \centering
 \tiny
-\textbf{$\hat{\Sigma}$}
+\textbf{$\hat{\boldsymbol\Sigma}$}
 \[
 \begin{pmatrix}
   & 0.7521 & -0.0155 & -0.0860 & 0.0136 & -0.0060\\
@@ -398,7 +397,7 @@ grid.arrange(grobs = histograms, ncol = 3)
 \]
 
 
-##  Task 2 - Results Presentation(CI of $mu$)
+##  Task 2 - Results Presentation (CIs of $\boldsymbol \mu$)
 ```{r warning=FALSE, echo=FALSE}
 data <- data.frame(
   variable = c("mu_0", "mu_1", "mu_2", "mu_3", "mu_4"),
