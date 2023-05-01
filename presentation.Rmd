@@ -201,28 +201,43 @@ $$\begin{aligned}
 
 Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchical model. Monitor the convergence of the MCMC chains, using diagnostic plots and summary statistics to check for any issues.
 
+## Task 2 - Posterior Distribution (part1)
+**Conditional Posterior for each parameter**
+
+\fontsize{5pt}{3pt}\selectfont
+$$\boldsymbol{\mu}\mid (\mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)\sim N\left(\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right), \boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\right).$$
+
+\fontsize{5pt}{3pt}\selectfont
+$$\boldsymbol{\Sigma}\mid (\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)\sim \mathcal{W}^{-1}\left(\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top, n+\nu\right).$$
+\fontsize{5pt}{3pt}\selectfont
+$$\begin{aligned}
+&\ \boldsymbol\gamma\mid (\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma,\boldsymbol{Y}^\top)\sim N\left(\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\left(-\frac{1}{\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-Y_{i,j})\mathbf{X}_i\right),\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\right).
+\end{aligned}$$
+\fontsize{5pt}{3pt}\selectfont
+$$\pi(\sigma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\boldsymbol{Y}^\top)\propto
+I(\sigma>0)\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).$$
+
 ## Task 2 - MCMC Algorithm
 \begin{algorithm}[H]
-  \fontsize{5pt}{4pt}\selectfont
- \caption{MCMC Algorithm (Part 1)}
+  \fontsize{7pt}{5pt}\selectfont
+ \caption{MCMC Algorithm}
  \begin{algorithmic}
    \Require $\mathbf{Y}$; $\boldsymbol{\beta}_0, \boldsymbol{\mu}_0, \boldsymbol{\Sigma}_0, \sigma_0, \gamma_0$
-   \Ensure $\widehat{\boldsymbol{\beta}}, \widehat{\boldsymbol{\mu}}, \widehat{\boldsymbol{\Sigma}}, \widehat{\sigma}, \widehat{\gamma}$ $\approx$ $\boldsymbol{\beta}, \boldsymbol{\mu}, \boldsymbol{\Sigma}, \sigma, \gamma$
    \State $i\leftarrow 0$, where $i$ is the current number of iterations
-   \While {iteration times is not met}
+   \For{$i=1$ to $iternumber$}
      \State $i \leftarrow i+1$
      \State Gibbs sampling for $\boldsymbol{\beta}$\par ${\boldsymbol{\beta}^{(k)}} \sim \mathcal{N}(\boldsymbol{\beta}|\mathbf{Y},\boldsymbol{\mu}^{(k-1)},\boldsymbol{\Sigma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{\gamma}^{(k-1)})$
      \State Gibbs sampling for $\boldsymbol{\mu}$\par $\boldsymbol{\mu}^{(k)} \sim \mathcal{N}(\boldsymbol{\mu}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\Sigma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{\gamma}^{(k-1)})$
-     \State Gibbs sampling for $\Sigma$\par $\boldsymbol{\Sigma}^{(k)} \sim \mathcal{Wishart}(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \sigma^{(k-1)}, \gamma^{(k-1)})$
-     \State Gibbs sampling for $\boldsymbol{\gamma}$ $\boldsymbol{\gamma}^{(k)} \sim p(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, , \Sigma^{(k)},\sigma^{(k-1)})$
+     \State Gibbs sampling for $\Sigma$\par $\boldsymbol{\Sigma}^{(k)} \sim Wishart(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \sigma^{(k-1)}, \gamma^{(k-1)})$
+     \State Gibbs sampling for $\boldsymbol{\gamma}$\par $\boldsymbol{\gamma}^{(k)} \sim p(\boldsymbol{\Sigma}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, , \Sigma^{(k)},\sigma^{(k-1)})$
      \State Metropolis-Hastings for $\sigma$
-      \State Propose a new value $\sigma^*$ from a normal distribution with mean $\sigma^{(k-1)}$ and a small variance.
+      \State Propose a conditional distribution of new value $\sigma^*$ from a Uniform distribution, a=0.1.
       \State Compute the acceptance ratio\par
-      $\gamma = \frac{p(\gamma^{(k)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)},\sigma^{(k)})q(\gamma^{(k-1)}|\gamma^{(k)})}{p(\gamma^{(k-1)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)}, \sigma^{(k)})q(\gamma^{(k)}|\gamma^{(k-1)})}$
+      $\gamma = \frac{p(\gamma^{(k)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)},\sigma^{(k)})q(\gamma^{(k-1)}|\gamma^{(k)})}{p(\gamma^{(k-1)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)}, \sigma^{(k)})q(\gamma^{(k)}|\gamma^{(k-1)})}$\par
+      $\alpha=\min(1,\gamma)$\par
       \State Generate a random number $u$ from a uniform distribution between 0 and 1.
-      \State If $u \leq r$, set $\sigma^{(k)} = \sigma^*$, otherwise set $\sigma^{(k)} = \sigma^{(k-1)}$.
-      \State 
-    \EndWhile
+      \State If $u \leq \alpha$, set $\sigma^{(k)} = \sigma^*$, otherwise set $\sigma^{(k)} = \sigma^{(k-1)}$.(The Final acceptance rate is 0.418)
+    \EndFor
   \State 
   \end{algorithmic}
 \end{algorithm}
@@ -235,10 +250,10 @@ Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchi
     \textbf{Final Initial Value Selection and Core Information of MH Algorithm}
     \begin{itemize}
     \item$\boldsymbol{\beta}_i$: This can be obtained through the random effects term in the lmm model. The random effects term can be added to the fixed effects term to obtain $\boldsymbol{\beta}_i^{(0)}$.
-    \item$\boldsymbol{\mu}$: This can be obtained through the fixed effects of windpre, latdif, longdif, winddif term.
+    \item$\boldsymbol{\mu}$: This can be obtained through the fixed effects of windpre, latdiff, longdiff, winddiff term.
     \item$\boldsymbol{\gamma}$: This can be obtained through the fixed effects of Season, Active Month, and Nature term.
     \item$\sigma^2$: This can be obtained through the model residual sigma0.
-    \item$\Sigma^{-1}$: This can be obtained through the VarCorr(lmm) function which returns the covariance matrix of the random effects in the model. The inverse of this matrix can be taken to obtain $\Sigma^{-1^{(0)}}$.
+    \item$\Sigma$: This can be obtained through the VarCorr(lmm) function which returns the covariance matrix of the random effects in the model $\Sigma^{^{(0)}}$.
     \end{itemize}
   \end{column}
  \begin{column}{0.6\textwidth}
@@ -347,17 +362,17 @@ histograms <- lapply(seq_along(mu_df), function(i) {
 grid.arrange(grobs = histograms, ncol = 3)
 ```
 
-##  Task 2 - Results Presentation(Values of $mu$ and $Sigma$)
+##  Task 2 - Results Presentation(Parameters Estimation of $mu$ and $Sigma$)
 \centering
 \tiny
 \textbf{$\hat{\mu}$}
 \[
 \begin{pmatrix}
-  \hat{\mu}_0 & 4.6170057 \\
-  \hat{\mu}_1 & 0.9035517 \\
-  \hat{\mu}_2 & -0.0425631 \\
-  \hat{\mu}_3 & -0.4558512 \\
-  \hat{\mu}_4 & 0.4706897
+  \hat{\mu}_0 & -3.6594881 \\
+  \hat{\mu}_1 & 0.9020437 \\
+  \hat{\mu}_2 & -0.0584559 \\
+  \hat{\mu}_3 & -0.4502597 \\
+  \hat{\mu}_4 & 0.4714633
 \end{pmatrix}
 \]
 
@@ -387,20 +402,14 @@ grid.arrange(grobs = histograms, ncol = 3)
 \end{pmatrix}
 \]
 
-##  Task 2 - Results Presentation(CI of $mu$ and $Beta_{mean}$)
+##  Task 2 - Results Presentation(CI of $mu$)
 ```{r warning=FALSE, echo=FALSE}
 data <- data.frame(
-  variable = c("beta_mean_0", "beta_mean_1", "beta_mean_2", "beta_mean_3", "beta_mean_4",
-               "mu_0", "mu_1", "mu_2", "mu_3", "mu_4"),
-  mean = c(-3.6630742, 0.9025330, -0.0585258, -0.4508275, 0.4722175,
-           4.6170057, 0.9035517, -0.0425631, -0.4558512, 0.4706897),
-  lower_CI = c(-4.9777068, 0.8896760, -0.2852565, -0.5631008, 0.4325184,
-               -4.6014745, 0.8399851, -0.2496227, -0.5891481, 0.3979018),
-  upper_CI = c(-1.1445976, 0.9156107, 0.1540752, -0.3268690, 0.5126448,
-               22.2632268, 0.9661758, 0.1581210, -0.3209113, 0.5432620)
+  variable = c("mu_0", "mu_1", "mu_2", "mu_3", "mu_4"),
+  mean = c(-3.6594881, 0.9020437, -0.0584559, -0.4502597, 0.4714633),
+  lower_CI = c(-4.9823968, 0.8379360, -0.2942283, -0.5789892, 0.3958291),
+  upper_CI = c(-1.1458245, 0.9670541, 0.1610285, -0.3093745, 0.5443864)
 )
-
-
 knitr::kable(data, format = "markdown")
 
 ```
