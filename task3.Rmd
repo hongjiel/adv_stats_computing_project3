@@ -57,3 +57,20 @@ The result does not change much.
 So for this task, the answer is that there are no seasonal difference in hurricane wind speeds, and also there is no evidence to support the claim that hurricane wind speeds have been increasing over the years.
 
 This is somehow against the common sense of mankind. Because we would naturally think that, because of global warming, the hurricanes are bound to get worse so that the wind speeds should have been increasing. And active seasons, we define as from August to October. The wind speeds of hurricanes in active season should be larger than those in inactive season, but it is not the case.
+
+```{r}
+library(png)
+library(gridExtra)
+
+# Load first image
+img1 <- readPNG("jacky_part_pic/gammayear.png")
+
+# Load second image
+img2 <- readPNG("jacky_part_pic/gammaactive.png")
+
+grob1 <- rasterGrob(img1)
+grob2 <- rasterGrob(img2)
+
+grid.arrange(grob1, grob2, ncol = 2)
+```
+

@@ -400,14 +400,19 @@ Compute posterior summaries and 95% credible intervals of $\gamma$, the fixed ef
 
 ## Task 3 - Parameters Convergence
 \begin{figure}[H] 
-\includegraphics[width=1.0\textwidth]{parameters3.0/mu/parameter_1.png} 
+\includegraphics[width=1.0\textwidth]{jacky_part_pic/gamma.png} 
 \end{figure}
 
 ## Task 3 - 95% Credible Intervals
 \begin{figure}[H] 
 \includegraphics[width=1.0\textwidth]{jacky_part_pic/95ci.png} 
 \end{figure}
+- Conclusion: 
 
+  1. There are no seasonal difference (Active v.s inactive) in hurricane wind speeds.
+  
+  2. There is no evidence to support the claim that hurricane wind speeds have been increasing over the years because of divergence.
+  
 ## Task 4 - Objective
 **Objective:**
 
