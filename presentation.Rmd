@@ -432,7 +432,7 @@ Compute posterior summaries and 95% credible intervals of $\gamma$, the fixed ef
 \end{figure}
 - Conclusion: 
 
-  1. There are no seasonal difference (Active v.s inactive) in hurricane wind speeds.
+  1. There is no seasonal difference (active v.s inactive) in hurricane wind speeds.
   
   2. There is no evidence to support the claim that hurricane wind speeds have been increasing over the years because of divergence.
   
