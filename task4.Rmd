@@ -434,19 +434,60 @@ for (i in 1:5) {
     geom_line(aes(y = wind_obs, color = "Observed")) +
     geom_line(aes(y = wind_predict, color = "Predicted")) +
     labs(title = ID_name[i*5,], x = "Time Index", y = "Wind Speed") +
-    scale_color_manual(name = "Legend",
+        scale_color_manual(name = "Legend",
                        values = c("Observed" = "#1E90FF", "Predicted" = "orange"),
-                       labels = c("Observation", "Prediction")) + 
+                       labels = c("Observation", "Prediction"))+
     theme(plot.title = element_text(hjust = 0.5))
   plot_list_a[[i]] <- graph_a
   plot_list_b[[i]] <- graph_b
 
 }
 
+
+
 grid_a <- grid.arrange(grobs = plot_list_a[c(1:4)], ncol = 2, nrow=2)
 grid_b <- grid.arrange(grobs = plot_list_b[c(1:4)], ncol = 2, nrow=2)
 
+
+
+
 ggsave(filename = "predic_plots/a_1_4.png",grid_a,width = 6, height = 4, dpi = 300)
 ggsave(filename = "predic_plots/b_1_4.png",grid_b,width = 6, height = 4, dpi = 300)
+```
+
+```{r}
+library(cowplot)
+
+# create the plots
+plot_list_c <- list()
+
+for (i in 1:5) {
+  example_hurri = as.data.frame(Y_table_set[[i*5]])
+  example_hurri$index = 1:nrow(example_hurri)
+  
+  graph_b = ggplot(example_hurri, aes(x = index)) +
+    geom_point(aes(y = wind_obs, color = "Observed")) +
+    geom_point(aes(y = wind_predict, color = "Predicted")) +
+    geom_line(aes(y = wind_obs, color = "Observed")) +
+    geom_line(aes(y = wind_predict, color = "Predicted")) +
+    labs(title = ID_name[i*5,], x = "Time Index", y = "Wind Speed") +
+    theme(legend.position = "none")+
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  plot_list_c[[i]] <- graph_b
+}
+
+# arrange the plots using grid.arrange
+grid_c <- grid.arrange(grobs = plot_list_c[c(1:4)], ncol = 2, nrow=2)
+
+# extract the legends from each plot
+
+
+# merge the legends into one common legend
+legend <- cowplot::get_legend(plot_list_c[[1]]+theme(legend.position="bottom"))
+
+# add the common legend to the grid of plots
+plot_grid(grid_c, legend, ncol = 1, rel_heights = c(1, .1))
+
 ```
 

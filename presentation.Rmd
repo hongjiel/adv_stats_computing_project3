@@ -438,7 +438,7 @@ ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
 Prediction performance on random chosen example hurricanes.
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.8\textwidth]{predic_plots/b_1_4.png}
+  \includegraphics[width=0.8\textwidth]{predic_plots/b_merge.png}
   \caption{Time series prediction plot}
 \end{figure}
 
