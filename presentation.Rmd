@@ -506,6 +506,36 @@ We plot the $RMSE$ and $R^2$ distribution for all the hurricanes
   \caption{$R^2$ distribution}
 \end{figure}
 
+## Task 4
+To enhance the evaluation of our prediction performance, we examined the distribution of RMSE values across various properties of hurricanes.
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/rmse_nature.png}
+  \caption{RMSE under different natures}
+\end{figure}
+
+## Task 4
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/nature2.png}
+  \caption{RMSE under different natures}
+\end{figure}
+
+## Task 4
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/months1.png}
+  \caption{RMSE under different months}
+\end{figure}
+
+## Task 4
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/month2.png}
+  \caption{RMSE under different months}
+\end{figure}
+
+
 ## Discussions
 
 - Better parameters convergence performance in MCMC

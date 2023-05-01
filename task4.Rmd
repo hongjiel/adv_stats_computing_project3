@@ -300,17 +300,19 @@ ggplot(RMSE_9000, aes(x = RMSE)) +
 ### The difference of RMSE distribution of difference properties.
 ```{r}
 # distribution of RMSE on hurricane nature
-ggplot(hurri_res, aes(x = Nature, y = RMSE, fill = Nature)) + 
+nature1<-ggplot(hurri_res, aes(x = Nature, y = RMSE, fill = Nature)) + 
   geom_boxplot() + 
   scale_color_manual(values = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2")) +
   labs(title = "RMSE vs. Nature", x = "Nature", y = "RMSE") + 
   theme(plot.title = element_text(hjust = 0.5))
 
 
-ggplot(hurri_res, aes(x = RMSE, fill = Nature)) + 
+nature2<-ggplot(hurri_res, aes(x = RMSE, fill = Nature)) + 
   geom_density(alpha = 0.5) + 
   labs(title = "RMSE vs. Nature", x = "RMSE", fill = "Nature") + 
   theme(plot.title = element_text(hjust = 0.5))
+
+
 
 
 # distribution of RMSE on hurricane active months
