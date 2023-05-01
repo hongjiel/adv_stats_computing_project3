@@ -495,11 +495,9 @@ We plot the $RMSE$ and $R^2$ distribution for all the hurricanes
 
 ## Discussions
 
-- Parameters Convergence Problem
+- Better parameters convergence performance in MCMC
 
-## Reference
-
-Reference
+- Prediction latency in responding to wind speed change
 
 ## Q&A
 
