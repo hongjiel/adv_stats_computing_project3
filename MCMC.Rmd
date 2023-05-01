@@ -55,7 +55,8 @@ hurricane_df <-
     # 2 hurricanes with the name SUBTROP:UNNAMED.1976
     ID = ifelse(ID == "SUBTROP:UNNAMED.1976" & Month == "May", "SUBTROP:UNNAMED.1976(1)", ID),
     ID = ifelse(ID == "SUBTROP:UNNAMED.1976", "SUBTROP:UNNAMED.1976(2)", ID)
-  )
+  ) %>% 
+  mutate(Season = Season - 1950) # scale the year
 ```
 
 ### Data partition (may be useless.)
