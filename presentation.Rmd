@@ -205,7 +205,7 @@ Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchi
 - $\boldsymbol\beta_i\mid (\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)$:  
 a multivariate normal distribution with mean vector
 $$\left(\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}\left(\boldsymbol{\Sigma}^{-1}\boldsymbol\mu+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf{X}_i^\top\boldsymbol\gamma)\mathbf Z_{i,j-1}\right)$$
-and covariance matrix $$\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top$$
+and covariance matrix $$\left(\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}$$
 - $\boldsymbol{\mu}\mid (\mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)$:  
 a multivariate normal distribution with mean vector $$\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)$$ and covariance matrix $$\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}$$
 
@@ -368,6 +368,14 @@ histograms <- lapply(seq_along(mu_df), function(i) {
 # Combine the histograms into a single plot using gridExtra
 grid.arrange(grobs = histograms, ncol = 3)
 ```
+
+## Task 2 - Results Presentation (Autocorrelation Plots for $\boldsymbol \mu$)
+\begin{figure} 
+  \centering 
+    \includegraphics[width=4.0in, height = 2.5in]{parameters_burnin/Aoto.png} 
+  \label{para2} 
+\end{figure}
+
 
 ##  Task 2 - Results Presentation (Parameter Estimations of $\boldsymbol \mu$ and $\boldsymbol \Sigma$)
 \centering
