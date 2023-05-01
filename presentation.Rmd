@@ -403,6 +403,11 @@ Compute posterior summaries and 95% credible intervals of $\gamma$, the fixed ef
 \includegraphics[width=1.0\textwidth]{parameters3.0/mu/parameter_1.png} 
 \end{figure}
 
+## Task 3 - 95% Credible Intervals
+\begin{figure}[H] 
+\includegraphics[width=1.0\textwidth]{jacky_part_pic/95ci.png} 
+\end{figure}
+
 ## Task 4 - Objective
 **Objective:**
 

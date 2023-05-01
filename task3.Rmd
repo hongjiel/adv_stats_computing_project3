@@ -21,8 +21,10 @@ summary(gamma_list)
 
 See the time-series plot to make decision about burn in
 ```{r}
-plot(gamma_list[,1], type = "l") # e.g. plot gamma1 (year)              seems not converge, just take the last stable part 8001-9000
-plot(gamma_list[,2], type = "l") # plot gamma2(active season)           seems converge, keep the number of burn in same as year
+plot(gamma_list[,1], type = "l", ylab = "gamma_year")
+abline(v = 8000, col = "red", lty = "dashed")# e.g. plot gamma1 (year)              seems not converge, just take the last stable part 8001-9000
+plot(gamma_list[,2], type = "l", ylab = "gamma_active") # plot gamma2(active season)           seems converge, keep the number of burn in same as year
+abline(v = 8000, col = "red", lty = "dashed")
 ```
 
 ```{r}
@@ -37,7 +39,7 @@ qqnorm(gamma_list$Season)
 qqline(gamma_list$Season) # maybe normal
 shapiro.test(gamma_list$Season) # not normal
 quantiles <- apply(gamma_list, 2, quantile, c(0.025, 0.975)) # use 2.5 and 97.5 quantile to get 95% credible interval
-quantiles
+quantiles %>% knitr::kable(col.names = c("gamma_year", "gamma_active"))
 ```
 
 From the result, we can see Season's 95% Credible Interval does not contain 0. However, it's still not enough to support that hurricane wind speeds have been increasing over the years because $\gamma_{year}$ does not converge. As for Active season vs Inactive season, since the 95% Credible Interval contains 0, we may conclude that there are no seasonal difference in hurricane wind speeds.
