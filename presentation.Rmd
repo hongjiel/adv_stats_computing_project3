@@ -174,7 +174,7 @@ Design and implement a custom MCMC algorithm for the outlined Bayesian hierarchi
     \textbf{Final Initial Value Selection and Core Information of MH Algorithm}
     \begin{itemize}
     \item$\boldsymbol{\beta}_i$: This can be obtained through the random effects term in the lmm model. The random effects term can be added to the fixed effects term to obtain $\boldsymbol{\beta}_i^{(0)}$.
-    \item$\boldsymbol{\mu}$: This can be obtained through the fixed effects of windpre, latdiff, longdiff, winddiff term.
+    \item$\boldsymbol{\mu}$: This can be obtained through the fixed effects of windpre, latdif, longdif, winddif term.
     \item$\boldsymbol{\gamma}$: This can be obtained through the fixed effects of Season, Active Month, and Nature term.
     \item$\sigma^2$: This can be obtained through the model residual sigma0.
     \item$\Sigma^{-1}$: This can be obtained through the VarCorr(lmm) function which returns the covariance matrix of the random effects in the model. The inverse of this matrix can be taken to obtain $\Sigma^{-1^{(0)}}$.
