@@ -20,6 +20,7 @@ header-includes:
 - \usepackage{algorithm} 
 - \usepackage{algpseudocode} 
 - \usepackage{amsthm}
+- \usepackage{bm}
 ---
 
 ```{r setup, include=FALSE}
@@ -81,6 +82,22 @@ First we need to pre-process the data. We only kept observations that occurred o
 ## Posterior summaries of gamma 
 
 ## Hurricane wind speed prediction
+Given parameters $\gamma$ and $\bm{\beta_i}$ which is the coefficients associated the $i$th hurricane, the predicted wind speed of the $i$-th hurricane at $t+6$ time stamp, denoted as $\hat{Y}_i(t+6)$ could be computed as:
+$$\hat{Y}_i(t+6) = \bm{\beta_i}^T \mathbf{Z_i}(t) + \mathbf{X_i}\gamma$$
+where $\bm{\beta_i} = (\beta_{0,i}, \beta_{1,i}, ..., \beta_{4,i})$, and $\mathbf{Z_i}(t) = (1, \ Y_i(t), \ \Delta_{i,1}(t), \ \Delta_{i,2}(t), \ \Delta_{i,3}(t))$.\par
+
+Based on the burn-in number $8000$ as concluded in MCMC parameter convergence diagnostic section, we calculated the parameters to be used to make prediction, and predict the wind speeds of each hurricane at each time stamp, except for the first two time stamps. We computed the RMSE and R-squared of each hurricane, as partly shown in the table \ref{table:summary}.
+
+The overall RMSE performance of difference hurricanes is shown in figure \ref{RMSE distribution}.
+
+The overall R-squared performance of difference hurricanes is shown in figure \ref{$R^2$ distribution}.
+
+The prediction performance on random chosen example hurricanes is shown in figure \ref{Time series prediction plot} and figure \ref{Prediction vs. observation}.
+
+Furthermore, we examined the distribution of RMSE across various properties of hurricanes is shown in figure \ref{RMSE under different natures} and figure \ref{RMSE under different months}.
+
+We observed that hurricanes belong to nature of "Not Rated" and "Tropical Storm" have an average higher RMSE than other hurricanes. Besides, hurricanes happening in summer from June to September, also have higher RMSE than other months.
+
 
 
 # Discussion
@@ -97,4 +114,71 @@ First we need to pre-process the data. We only kept observations that occurred o
 
 ## Figures and Tables {-}
 
-## Codes {-}
+\begin{table}[h]
+\centering
+\small
+\caption{Summary of RMSE and R-squared for selected hurricanes}
+\label{table:summary}
+\begin{tabular}{llcc}
+\hline
+\textbf{ID} & \textbf{Year} & \textbf{RMSE} & \textbf{R-squared} \\ \hline
+ABBY.1960 & 1960 & 8.8804 & 0.7700 \\
+ABBY.1964 & 1964 & 9.6430 & 0.3033 \\
+ABBY.1968 & 1968 & 3.5043 & 0.9360 \\
+ABLE.1950 & 1950 & 3.6755 & 0.9813 \\
+ABLE.1951 & 1951 & 3.4802 & 0.9767 \\
+ABLE.1952 & 1952 & 4.5183 & 0.9583 \\
+AGNES.1972 & 1972 & 5.2483 & 0.8881 \\
+ALBERTO.1982 & 1982 & 8.0473 & 0.7499 \\
+ALBERTO.1988 & 1988 & 2.6121 & 0.7420 \\
+ALBERTO.1994 & 1994 & 4.3941 & 0.8807 \\
+ALBERTO.2000 & 2000 & 3.7896 & 0.9625 \\
+ALBERTO.2006 & 2006 & 4.3591 & 0.7882 \\
+ALBERTO.2012 & 2012 & 3.2193 & 0.8036 \\
+ALEX.1998 & 1998 & 2.9351 & 0.7289 \\
+ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/rmse1.png}
+  \caption{RMSE distribution}
+  \label{RMSE distribution}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/R_square.png}
+  \caption{$R^2$ distribution}
+  \label{$R^2$ distribution}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/b_merge.png}
+  \caption{Time series prediction plot}
+  \label{Time series prediction plot}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/a_1_4.png}
+  \caption{Prediction vs. observation}
+  \label{Prediction vs. observation}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/rmse_nature.png}
+  \caption{RMSE under different natures}
+  \label{RMSE under different natures}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/months1.png}
+  \caption{RMSE under different months}
+  \label{RMSE under different months}
+\end{figure}
+
