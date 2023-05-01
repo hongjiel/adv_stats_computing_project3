@@ -110,7 +110,21 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 \begin{figure}[ht]
   \centering
   \includegraphics[width=1.0\textwidth]{jacky_part_pic/traj.png}
-  \caption{Trajectories of hurricanes by month}
+  \caption{Trajectories of Hurricanes by Month}
+\end{figure}
+
+## EDA 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=1.0\textwidth]{jacky_part_pic/month.png}
+  \caption{Count and Average Speed of Hurricanes in each Month}
+\end{figure}
+
+## EDA 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=1.0\textwidth]{jacky_part_pic/year.png}
+  \caption{Count and Average Speed of Hurricanes in each Year}
 \end{figure}
 
 ## Bayesian Model
@@ -373,7 +387,7 @@ grid.arrange(grobs = histograms, ncol = 3)
 \end{pmatrix}
 \]
 
-##  Task 2 - Results Presentation(CI of $mu$ and $Beta_mean$)
+##  Task 2 - Results Presentation(CI of $mu$ and $Beta_{mean}$)
 ```{r warning=FALSE, echo=FALSE}
 data <- data.frame(
   variable = c("beta_mean_0", "beta_mean_1", "beta_mean_2", "beta_mean_3", "beta_mean_4",
@@ -491,7 +505,6 @@ We plot the $RMSE$ and $R^2$ distribution for all the hurricanes
   \includegraphics[width=0.8\textwidth]{predic_plots/R_square.png}
   \caption{$R^2$ distribution}
 \end{figure}
-
 
 ## Discussions
 
