@@ -218,7 +218,7 @@ a multivariate normal distribution with mean vector $$\left(400\boldsymbol I+\fr
 
 ## Task 2 - Conditional Posterior Distribution for Each Parameter
 \fontsize{9pt}{8pt}\selectfont
-- $\sigma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\boldsymbol{Y}^\top)$:  
+- $\sigma\mid (\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\boldsymbol{Y}^\top)$:  
 $$\begin{aligned}&\ \pi(\sigma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\boldsymbol{Y}^\top)\\
 \propto&\ I(\sigma>0)\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).\end{aligned}$$
 
@@ -230,9 +230,9 @@ $$\begin{aligned}&\ \pi(\sigma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsy
    \Require $\mathbf{Y}$; $\boldsymbol{\beta}_0, \boldsymbol{\mu}_0, \boldsymbol{\Sigma}_0, \sigma_0, \gamma_0$
    \For{$k=1$ to $10000$}
      \State Gibbs sampling for $\boldsymbol{\beta}_i$'s\par generate ${\boldsymbol{\beta}_i^{(k)}}$ from $\pi(\boldsymbol\beta_i\mid \boldsymbol{\mu}^{(k-1)},\boldsymbol{\Sigma}^{(k-1)},\boldsymbol\gamma^{(k-1)},\sigma^{(k-1)},\boldsymbol{Y}^\top)$
-     \State Gibbs sampling for $\boldsymbol{\mu}$\par generate $\boldsymbol{\mu}^{(k)}$ from $\pi(\boldsymbol{\mu}|\mathbf B^{(k)}, \boldsymbol{\Sigma}^{(k-1)},\boldsymbol{\gamma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{Y}^\top)$
-     \State Gibbs sampling for $\boldsymbol\Sigma$\par generate $\boldsymbol{\Sigma}^{(k)}$ from $\pi(\boldsymbol{\Sigma}| \mathbf B^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol\gamma^{(k-1)}, \sigma^{(k-1)}, \mathbf{Y}^\top)$
-     \State Gibbs sampling for $\boldsymbol{\gamma}$\par generate $\boldsymbol{\gamma}^{(k)}$ from $\pi(\boldsymbol{\gamma}| \mathbf B^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol\Sigma^{(k)},\sigma^{(k-1)}, \mathbf{Y}^\top)$
+     \State Gibbs sampling for $\boldsymbol{\mu}$\par generate $\boldsymbol{\mu}^{(k)}$ from $\pi(\boldsymbol{\mu}\mid\mathbf B^{(k)}, \boldsymbol{\Sigma}^{(k-1)},\boldsymbol{\gamma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{Y}^\top)$
+     \State Gibbs sampling for $\boldsymbol\Sigma$\par generate $\boldsymbol{\Sigma}^{(k)}$ from $\pi(\boldsymbol{\Sigma}\mid \mathbf B^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol\gamma^{(k-1)}, \sigma^{(k-1)}, \mathbf{Y}^\top)$
+     \State Gibbs sampling for $\boldsymbol{\gamma}$\par generate $\boldsymbol{\gamma}^{(k)}$ from $\pi(\boldsymbol{\gamma}\mid \mathbf B^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol\Sigma^{(k)},\sigma^{(k-1)}, \mathbf{Y}^\top)$
      \State Metropolis-Hastings algorithm for $\sigma$
       \State Propose a conditional distribution of new value $\sigma^*$ from $\text{Uniform}[\sigma^{(k-1)}-a,\sigma^{(k-1)}+a]$, where $a$ is the proposed step
       \State Compute the acceptance ratio\par
@@ -402,8 +402,8 @@ grid.arrange(grobs = histograms, ncol = 3)
 data <- data.frame(
   variable = c("mu_0", "mu_1", "mu_2", "mu_3", "mu_4"),
   mean = c(-3.6594881, 0.9020437, -0.0584559, -0.4502597, 0.4714633),
-  lower_CI = c(-4.9823968, 0.8379360, -0.2942283, -0.5789892, 0.3958291),
-  upper_CI = c(-1.1458245, 0.9670541, 0.1610285, -0.3093745, 0.5443864)
+  lower_bound = c(-4.9823968, 0.8379360, -0.2942283, -0.5789892, 0.3958291),
+  upper_bound = c(-1.1458245, 0.9670541, 0.1610285, -0.3093745, 0.5443864)
 )
 knitr::kable(data, format = "markdown")
 
