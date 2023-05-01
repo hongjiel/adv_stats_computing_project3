@@ -28,27 +28,45 @@ library(knitr)
 ```
 
 \newpage 
-# Background and Objectives
-Mammography is recognized as the most effective screening method for early breast cancer detection, but its accuracy remains limited. And as the number of variables that help predict breast cancer increases, doctors are forced to rely more on their subjective experiences to make decisions. The use of computer models can detect abnormalities in mammograms to aid radiologists in breast cancer diagnosis \hyperlink{1}{(Freer et al. 2001)}. The purpose of this study was to predict breast cancer benign/malignant status by quantitative modeling based on logistic regression, which may help radiologists manage a large amount of available information, make effective decisions to detect breast cancers and reduce unnecessary biopsy.
+# Introduction
+## Background
+A hurricane is a powerful tropical storm characterized by high winds, heavy rain, storm surges, and flooding. Hurricanes are also known as cyclones or typhoons, depending on the region where they occur.
 
-The data given has 569 observations. The column 'Diagnosis' which identifies if the image is coming from cancer tissue or benign cases (M = malignant, B = benign) would be used as outcome for modeling. We denote malignant as 1 and benign cases as 0 for prediction.
-The other 30 columns correspond to mean, standard deviation and the largest values (points on the tails) of the distributions of the following 10 features computed for the cell nuclei:
+Hurricanes typically form over warm ocean waters and can travel for thousands of miles, causing widespread destruction and disruption to communities in their path. They are categorized on a scale of 1 to 5 based on their wind speed and potential for damage, with Category 5 being the most severe.
+
+Hurricanes can cause significant damage to infrastructure, homes, and businesses, and can also result in loss of life. As such, it is essential to take precautions and follow instructions from emergency management officials in the event of a hurricane.
+
+## Motivation
+Climate researcher are interested in modeling hurricane trajectories for early warning and preparedness, resource allocation, planning and response, and scientific research. Overall, accurate modeling of hurricane trajectories is essential for mitigating the impact of hurricanes on communities, infrastructure, and the environment, as well as for advancing our scientific understanding of these powerful storms.
+
+In this project, we are particularly interested in forecasting the wind speed of hurricanes.
+
+## Dataset
+The dataset, `hurrican703.csv`, collected the track data of 702 hurricanes in the North Atlantic area from 1950 to 2013. For all the storms, their location (longitude & latitude) and maximum wind speed were recorded every 6 hours. The data includes the following variables:
 \begin{itemize}
-\item radius: mean of distances from center to points on the perimeter
-\item texture: standard deviation of gray-scale values
-\item perimeter: mean size of the core tumor
-\item area: mean area of the core tumor
-\item smoothness: local variation in radius lengths
-\item compactness: perimeter$^2/$area - 1.0
-\item concavity: severity of concave portions of the contour
-\item concave points: number of concave portions of the contour
-\item symmetry: symmetry of the tumor
-\item fractal dimension: "coastline approximation" - 1
+\item ID: ID of the hurricanes
+\item Season: In which year the hurricane occurred
+\item Month: In which month the hurricane occurred
+\item Nature: Nature of the hurricane
+  ET: Extra Tropical
+  
+  DS: Disturbance
+  
+  NR: Not Rated
+  
+  SS: Sub Tropical
+  
+  TS: Tropical Storm
+
+\item Time: dates and time of the record
+\item Latitude and Longitude: The location of a hurricane check point
+\item Wind.kt Maximum wind speed (in Knot) at each check point
 \end{itemize}
 
-We partitioned the data into training data (80%) and test data (20%). As exploring the training data, there are many predictors highly correlated to each other as shown in Figure  , such as 'area_mean', 'perimeter_worst', 'radius_mean' and so on, that could cause unstable parameter estimation as well as perplexing the interpretation of logistic model. While we could eliminate some correlated features for modeling as shown in Figure , regularized logistic regression also helps to tackle with it, which would be further explored in the following parts. 
-
 # Methods
+## Data pre-processing
+First we need to pre-process the data. We only kept observations that occurred on 6 consecutive hour intervals. Through this step, we found that some hurricanes had the same ID but were actually different ones (eg. ALICE). Hurricanes that had fewer than 3 observations were excluded. For the purpose of seasonal comparison, we defined August, September, and October as hurricane-active season, and the rest as hurricane-inactive season. After data cleaning, there are 21691 observations across 704 unique hurricanes.
+
 ## Logistic Model
 Logistic model measures the probability of an event taking place by having the log-odds for the event be a linear combination of one or more independent variables, and is commonly used in classifying binary response variables.\par
 
