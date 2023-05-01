@@ -248,7 +248,7 @@ We select the best $\lambda$ in two ways. One way is that we wrote a function to
 Here we take the $\lambda$ with the greatest mean AUC as the best $\lambda$. Further, we look at the predictors that the best $\lambda$ chooses and take them to re-fit the logistic regression model on the training data which is the 'optimal' model. We also fit a logsitical regression model on the training data using our Newton-Raphson algorithm to get the 'full' model. After that, we compare the two models' prediction performance on the test data in specificity, sensitivity, and AUC.
 
 # Results
-## Five-fold CV for Logistic-LASSO
+## Posterior Summaries and 95% Credible Intervals of $\gamma$
 We select the best $\lambda$ using our own function and `cv.glmnet` as shown in Figure . Both our cross-validation function and `cv.glmnet` function reach the greatest mean AUC when $\lambda=0.0099322$ as shown in Figure , thus this is the best $\lambda$ we choose. As for the predictors, when $\lambda = \lambda_{best}$, both methods select ten same predictors, which are `texture_mean`, `concave.points_mean`, `radius_se`, `fractal_dimension_se`, `radius_worst`, `texture_worst`, `smoothness_worst`, `concavity_worst`, `concave.points_worst`, and `symmetry_worst`, as shown in Figure.
 
 ## Model Comparison
