@@ -39,7 +39,9 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 
 ## Outline
 
-- Background
+- Introduction
+
+- EDA
 
 - Task 1
 
@@ -56,15 +58,17 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 - Q&A
 
 
-## Background
+## Introduction
 **Bayesian Modeling of Hurricane Trajectories:**\par
 - In this project we are interested in modeling the hurricane trajectories to forecast the wind speed.
 
-## Background 
+## Introduction 
 **Data Source:**\par
 - "hurricane703.csv" collected the track data of 703 hurricanes in the North Atlantic area since 1950. For all the storms, their location (longitude & latitude) and maximum wind speed were recorded every 6 hours.
 
+## EDA - Data pre-processing
 
+## EDA
 
 ## Bayesian Model
 Let $Y_{i}(t)$ denote the wind speed of the $i$th hurricane at time $t$ (in hours) since the hurricane began. The following Bayesian model was suggested to model the wind speed of the $i$th hurricane 6 hours later:
