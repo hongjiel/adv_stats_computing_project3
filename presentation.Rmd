@@ -59,12 +59,39 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 
 
 ## Introduction
-**Bayesian Modeling of Hurricane Trajectories:**\par
-- In this project we are interested in modeling the hurricane trajectories to forecast the wind speed.
+**Background:**
+
+- A hurricane is a large and powerful tropical cyclone that typically forms over warm ocean waters and can cause significant damage and destruction to coastal areas.
+
+**Motivation:**
+
+- Researchers are interested in modeling hurricane trajectories to forecast wind speed to predict the severity or to develop protective measures.
 
 ## Introduction 
-**Data Source:**\par
-- "hurricane703.csv" collected the track data of 703 hurricanes in the North Atlantic area since 1950. For all the storms, their location (longitude & latitude) and maximum wind speed were recorded every 6 hours.
+**Data Source:**
+
+- "hurricane703.csv" collected the track data (every 6 hours) of 702 hurricanes in the North Atlantic area since 1950.
+
+**Variables:**
+
+- ID: ID of the hurricanes
+- Season: In which the hurricane occurred
+- Month: In which the hurricane occurred
+- Nature: Nature of the hurricane
+  
+  ET: Extra Tropical
+  
+  DS: Disturbance
+  
+  NR: Not Rated
+
+  SS: Sub Tropical
+  
+  TS: Tropical Storm
+
+- time: dates and time of the record
+- Latitude and Longitude: The location of a hurricane check point
+- Wind.kt: Maximum wind speed (in Knot) at each check point
 
 ## EDA - Data pre-processing
 
