@@ -21,6 +21,9 @@ header-includes:
 - \usepackage{algpseudocode} 
 - \usepackage{amsthm}
 - \usepackage{bm}
+- \usepackage{subfigure}
+- \usepackage{graphicx}
+- \usepackage{float}
 ---
 
 ```{r setup, include=FALSE}
@@ -78,6 +81,139 @@ First we need to pre-process the data. We only kept observations that occurred o
 ## MCMC algorithm implementation
 
 ## Parameter convergence diagnostic
+
+## Methods of MCMC
+To estimate the parameters of the posterior distribution corresponding to the above calculation by collecting samples, we will use the MCMC method. We will apply Gibbs sampling steps to the parameters of the known conditional distribution, and use the Metropolis-Hastings (MH) method for the parameters of the unknown conditional distribution, specifically for $sigma$. For the other parameters, we will use Gibbs sampling.
+
+Before explaining the algorithm in detail, let's define the hyperparameters:
+- $\lambda$ is the acceptance rate of the MH algorithm.
+- $a$ represents the search window used in the MH algorithm.
+- $burnin$ indicates the starting iteration number for collecting samples.
+
+To begin this algorithm, for each iteration, we firstly Initialize the values of $\boldsymbol{\beta}_i^{(0)}$ ${\mu}^{(0)}$,$\boldsymbol{\Sigma}^{(0)}$, $\boldsymbol\gamma^{(0)}$, $\sigma^{(0)}$to some value we obtain from lmm model. 
+
+- Next For each iteration $k=1,2,\ldots$: Sample $\boldsymbol{\beta}_i^{(k)}$ from $\pi(\boldsymbol\beta_i\mid \boldsymbol{\mu}^{(k-1)},\boldsymbol{\Sigma}^{(k-1)},\boldsymbol\gamma^{(k-1)},\sigma^{(k-1)},\boldsymbol{Y}^\top)$ 
+sample $\boldsymbol{\mu}^{(k)}$ from $\pi(\boldsymbol{\mu}\mid\mathbf B^{(k)}, \boldsymbol{\Sigma}^{(k-1)},\boldsymbol{\gamma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{Y}^\top)$
+sample $\boldsymbol{\Sigma}^{(k)}$ from $\pi(\boldsymbol{\Sigma}\mid \mathbf B^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol\gamma^{(k-1)}, \sigma^{(k-1)}, \mathbf{Y}^\top)$
+Sample $\boldsymbol{\gamma}^{(k)}$ from $\pi(\boldsymbol{\gamma}\mid \mathbf B^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol\Sigma^{(k)},\sigma^{(k-1)}, \mathbf{Y}^\top)$
+
+- For each MH step, after obtaining $\boldsymbol{\beta}_i^{(k)}$, ${\mu}^{(k)}$, $\boldsymbol{\Sigma}^{(k)}$, and $\boldsymbol\gamma^{(k)}$ in the $k^{th}$ iteration, we assume that $sigma^{k}_i$ follows a U($sigma^{k-1}_i$-a, $sigma^{k-1}_i$+a) distribution. Then, we generate a candidate $\sigma^*$ from that distribution and calculate the acceptance ratio $\lambda$.\par $\lambda=\frac{\pi(\sigma^*|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)},\boldsymbol\gamma^{(k)})}{\pi(\sigma^{(k-1)}|\mathbf{Y}, \boldsymbol{\beta}^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol{\Sigma}^{(k)}, \boldsymbol\gamma^{(k)})}$\par
+At the same time we compute the acceptance probability, $\alpha$, as the minimum of 1 and the acceptance ratio: $\alpha=\min(1,\lambda)$. We compare that number with a random number $u$ from a uniform distribution, $\text{Uniform}(0,1)$.If $u \leq \alpha$, accept the proposed value and set $\sigma^{(k)} = \sigma^*$, otherwise reject the proposed value and set $\sigma^{(k)} = \sigma^{(k-1)}$.
+
+- Repeat this loop for a total of iternum=10000 times, recording the sample values of each parameter.
+
+## Starting Value of MCMC
+\textbf{Initial Value Selection}
+\begin{itemize}
+\item $\boldsymbol{\beta}_i$: This can be obtained through the random effects term in the lmm model. The random effects term can be added to the fixed effects term to obtain $\boldsymbol{\beta}_i^{(0)}$.
+\item $\boldsymbol{\mu}$: This can be obtained through the fixed effects of intercept, windpre, latdiff, longdiff, winddiff term.
+\item $\boldsymbol{\gamma}$: This can be obtained through the fixed effects of Year, Active Month, and Nature term.
+\item $\sigma$: This can be obtained through the model residual.
+\item $\boldsymbol{\Sigma}$: This can be obtained through the `VarCorr` function which returns the covariance matrix of the random effects in the model $\boldsymbol{\Sigma}^{(0)}$.
+\end{itemize}
+
+\textbf{Speficic Value}
+\begin{table}[h]
+    \centering
+    \caption{Initial Value Setting}
+    \begin{tabular}{|c|c|}
+        \hline
+        Parameter & Value \\
+        \hline
+        $\boldsymbol{\mu}^\top$ & $(24.25, 0.94, -0.02, -0.24, 0.47)$ \\
+        $\boldsymbol{\gamma}^\top$ & $(-0.01, 0.35, 0.28, 0.37, 0.12, 0.08)$ \\
+        $\boldsymbol{\Sigma}$ & $\begin{pmatrix}
+           0.358 & -0.010 & 0.039 & 0.121 & 0.028 \\
+           -0.01 & 0.001 & -0.003 & -0.005 & 0.002 \\
+           0.039 & -0.003 & 0.043 & 0.034 & -0.019 \\
+           0.121 & -0.005 & 0.034 & 0.069 & 0.003 \\
+           0.028 & 0.002 & -0.019 & 0.003 & 0.017 \\
+        \end{pmatrix}$ \\
+        $\sigma$ & 5.27 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+## Parameter convergence diagnostic
+### Trace plot
+\begin{figure} 
+  \centering 
+  \subfigure[mu]{ 
+    \label{sub1}
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_parameters_time_series_plot.png} 
+  } 
+  \subfigure[Sigma matrix]{ 
+    \label{sub2} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_parameters_time_series_plot.png} 
+  } \\
+  \subfigure[gamma]{ 
+    \label{sub3} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_parameters_time_series_plot.png} 
+  } 
+  \subfigure[sigma]{ 
+    \label{sub4} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_parameters_time_series_plot.png} 
+  } 
+  \label{para1} 
+\end{figure}
+
+Through trace plots, it can be seen that the convergence speed of each parameter is very fast, and after 1000 iterations, all parameters except the intercept of $\mu$ have converged with fluctuations, while the others have reached convergence.
+
+\newpage
+
+
+
+### Autocorrelation plot
+
+The autocorrelation plots of each parameter for the 500 iterations after burn-in are shown below:
+
+\begin{figure} 
+  \centering 
+  \subfigure[mu]{ 
+    \label{sub1}
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_ACF_Plot.png} 
+  } 
+  \subfigure[Sigma matrix]{ 
+    \label{sub2} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_ACF_Plot.png} 
+  } \\
+  \subfigure[gamma]{ 
+    \label{sub3} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_Parameters_ACF_Plot.png} 
+  } 
+  \subfigure[sigma]{ 
+    \label{sub4} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_Parameters_ACF_Plot.png} 
+  } 
+  \label{para1} 
+\end{figure}
+
+It can be seen from the plots that the autocorrelation of each parameter decreases rapidly and eventually stabilizes near zero.
+
+### Histogram plot
+\begin{figure} 
+  \centering 
+  \subfigure[mu]{ 
+    \label{sub1}
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_Histogram_Plot.png} 
+  } 
+  \subfigure[Sigma matrix]{ 
+    \label{sub2} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_Histogram_Plot.png} 
+  } 
+  \label{para1} 
+\end{figure}
+
+\newpage
+
+## Hyperparameter Value of choosing
+\textbf{Hyperparameter Value}
+\begin{itemize}
+ \item Search window $a=0.1$ 
+ \item Burn-in $=8000$ 
+ \item Resulting acceptance rate $=0.418$ 
+\end{itemize}
 
 ## Posterior summaries of gamma 
 Posterior summaries and 95% credible intervals of $\gamma$ is shown in table \ref{table:sum} and table \ref{table:ci}. We are mainly interested in answering two questions. Are there seasonal differences in hurricane wind speeds? Is there evidence to support the claim that hurricane wind speeds have been increasing over the years? The convergence of parameter $\gamma_{year}$ and $\gamma_{active}$ is shown in figure \ref{Year} and figure \ref{Active}. The two parameters converged after MCMC, and $\gamma_{active}$ had a better performance on convergence than $\gamma_{year}$. Thus we could answer the two questions using the 95% credible intervals. Since the credible intervals for both parameters contain zero, the conclusion is that there is no seasonal or yearly difference in hurricane wind speeds.
