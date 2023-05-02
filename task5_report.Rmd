@@ -80,7 +80,7 @@ First we need to pre-process the data. We only kept observations that occurred o
 ## Parameter convergence diagnostic
 
 ## Posterior summaries of gamma 
-Posterior summaries and 95% credible intervals of $\gamma$ is shown in table \ref{table:sum} and \ref{table:ci}.
+Posterior summaries and 95% credible intervals of $\gamma$ is shown in table \ref{table:sum} and table \ref{table:ci}. We are mainly interested in answering two questions. Are there seasonal differences in hurricane wind speeds? Is there evidence to support the claim that hurricane wind speeds have been increasing over the years? The convergence of parameter $\gamma_{year}$ and $\gamma_{active}$ is shown in figure \ref{Year} and figure \ref{Active}. The two parameters converged after MCMC, and $\gamma_{active}$ had a better performance on convergence than $\gamma_{year}$. Thus we could answer the two questions using the 95% credible intervals. Since the credible intervals for both parameters contain zero, the conclusion is that there is no seasonal or yearly difference in hurricane wind speeds.
 
 ## Hurricane wind speed prediction
 Given parameters $\gamma$ and $\bm{\beta_i}$ which is the coefficients associated the $i$th hurricane, the predicted wind speed of the $i$-th hurricane at $t+6$ time stamp, denoted as $\hat{Y}_i(t+6)$ could be computed as:
@@ -173,6 +173,20 @@ ALEX.1998 & 1998 & 2.9351 & 0.7289 \\
 ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
 \end{tabular}
 \end{table}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{jacky_part_pic/year.png}
+  \caption{Time series plot of $\gamma_{year}$}
+  \label{Year}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{jacky_part_pic/active.png}
+  \caption{Time series plot of $\gamma_{active}$}
+  \label{Active}
+\end{figure}
 
 \begin{figure}[ht]
   \centering
