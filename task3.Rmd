@@ -16,21 +16,21 @@ library(tidyverse)
 We are mainly interested in $\gamma_{Season}$ which is about year change, and $\gamma_{Active}$ which is about active season change compared to inactive season.
 ```{r}
 gamma_list <- read.csv("./data/gamma_list.csv")
-summary(gamma_list, digit = 1) %>% knitr::kable(digits = 3,col.names = c("gamma_year","gamma_active","gamma_ET","gamma_NR","gamma_SS","gamma_TS"))
+summary(gamma_list, digit = 1) %>% knitr::kable(digits = 2,col.names = c("gamma_year","gamma_active","gamma_ET","gamma_NR","gamma_SS","gamma_TS"))
 
 ```
 
 See the time-series plot to make decision about burn in
 ```{r}
 plot(gamma_list[,1], type = "l", ylab = "gamma_year")
-abline(v = 8000, col = "red", lty = "dashed")# e.g. plot gamma1 (year)              seems not converge, just take the last stable part 8001-9000
+abline(v = 5000, col = "red", lty = "dashed")# e.g. plot gamma1 (year)              seems not converge, just take the last stable part 8001-9000
 plot(gamma_list[,2], type = "l", ylab = "gamma_active") # plot gamma2(active season)           seems converge, keep the number of burn in same as year
-abline(v = 8000, col = "red", lty = "dashed")
+abline(v = 5000, col = "red", lty = "dashed")
 ```
 
 ```{r}
 # set burn in = 8000
-gamma_list = slice(gamma_list, 8001:10000)
+gamma_list = slice(gamma_list, 5001:10000)
 ```
 
 ```{r}

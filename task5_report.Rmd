@@ -80,6 +80,7 @@ First we need to pre-process the data. We only kept observations that occurred o
 ## Parameter convergence diagnostic
 
 ## Posterior summaries of gamma 
+Posterior summaries and 95% credible intervals of $\gamma$ is shown in table \ref{table:sum} and \ref{table:ci}.
 
 ## Hurricane wind speed prediction
 Given parameters $\gamma$ and $\bm{\beta_i}$ which is the coefficients associated the $i$th hurricane, the predicted wind speed of the $i$-th hurricane at $t+6$ time stamp, denoted as $\hat{Y}_i(t+6)$ could be computed as:
@@ -113,6 +114,39 @@ We observed that hurricanes belong to nature of "Not Rated" and "Tropical Storm"
 # Appendices {-}
 
 ## Figures and Tables {-}
+\begin{table}[h]
+\centering
+\small
+\caption{Posterior Summaries of $\gamma$}
+\label{table:sum}
+\begin{tabular}{llcc}
+\hline
+\textbf{parameter} & \textbf{Mean} & \textbf{Standard Deviation} & \textbf{Median} \\ \hline
+$\gamma_{year}$ & -0.010 & 0.009 & -0.011 \\
+$\gamma_{active}$ & 0.002 & 0.053 & 0.002 \\
+$\gamma_{ET}$ & 0.003 & 0.050 & 0.003 \\
+$\gamma_{NR}$ & 0.0002 & 0.049 & -0.0003 \\
+$\gamma_{SS}$ & 0.005 & 0.050 & 0.005 \\
+$\gamma_{TS}$ & 0.01 & 0.057 & 0.01 \\\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\caption{95\% Credible Intervals of $\gamma$}
+\label{table:ci}
+\begin{tabular}{lll}
+\hline
+\textbf{parameter} & \textbf{2.5\% Quantile} & \textbf{97.5\% Quantile} \\ \hline
+$\gamma_{year}$ & -0.029 & 0.008  \\
+$\gamma_{active}$ & -0.102 & 0.104  \\
+$\gamma_{ET}$ & -0.096 & 0.098  \\
+$\gamma_{NR}$ & -0.098 & 0.095  \\
+$\gamma_{SS}$ & -0.096 & 0.104  \\
+$\gamma_{TS}$ & -0.105 & 0.119  \\\hline
+\end{tabular}
+\end{table}
 
 \begin{table}[h]
 \centering
