@@ -60,7 +60,8 @@ hurricane_df =
     # 2 hurricanes with the name SUBTROP:UNNAMED.1976
     ID = ifelse(ID == "SUBTROP:UNNAMED.1976" & Month == "May", "SUBTROP:UNNAMED.1976(1)", ID),
     ID = ifelse(ID == "SUBTROP:UNNAMED.1976", "SUBTROP:UNNAMED.1976(2)", ID)
-  )
+  ) %>% 
+  mutate(Season = Season - 1950) # scale the year
 
 # data partition, no need to partition data
 Training = hurricane_df
@@ -213,7 +214,7 @@ hurri_res_brief = hurri_res %>%
 write.csv(hurri_res_brief, "data/prediction_brief.csv", row.names = FALSE)
 write.csv(hurri_res, "data/prediction_all.csv", row.names = FALSE)
 
-hurri_res_brief %>%m
+hurri_res_brief %>%
   knitr::kable(digits = 4)
 ```
 
@@ -300,14 +301,14 @@ ggplot(RMSE_9000, aes(x = RMSE)) +
 ### The difference of RMSE distribution of difference properties.
 ```{r}
 # distribution of RMSE on hurricane nature
-nature1<-ggplot(hurri_res, aes(x = Nature, y = RMSE, fill = Nature)) + 
+nature1=ggplot(hurri_res, aes(x = Nature, y = RMSE, fill = Nature)) + 
   geom_boxplot() + 
   scale_color_manual(values = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2")) +
   labs(title = "RMSE vs. Nature", x = "Nature", y = "RMSE") + 
   theme(plot.title = element_text(hjust = 0.5))
 
 
-nature2<-ggplot(hurri_res, aes(x = RMSE, fill = Nature)) + 
+nature2=ggplot(hurri_res, aes(x = RMSE, fill = Nature)) + 
   geom_density(alpha = 0.5) + 
   labs(title = "RMSE vs. Nature", x = "RMSE", fill = "Nature") + 
   theme(plot.title = element_text(hjust = 0.5))
@@ -338,17 +339,17 @@ ggplot(hurri_res, aes(x = RMSE, fill = Month)) +
 
 
 # distribution of RMSE on hurricane season
-ggplot(hurri_res %>% filter(Season < 1970) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
+ggplot(hurri_res %>% filter(Season < 20) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
   geom_density_ridges(scale = 0.8) + 
   labs(title = "RMSE from start year to 1970",x = "RMSE", y = "Season") + 
   theme(plot.title = element_text(hjust = 0.5))
 
-ggplot(hurri_res %>% filter(Season >= 1970 & Season < 1990) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
+ggplot(hurri_res %>% filter(Season >= 20 & Season < 40) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
   geom_density_ridges(scale = 0.8) + 
   labs(title = "RMSE from 1970 to 1990", x = "RMSE", y = "Season") + 
   theme(plot.title = element_text(hjust = 0.5))
 
-ggplot(hurri_res %>% filter(Season >= 1990 & Season < 2013) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
+ggplot(hurri_res %>% filter(Season >= 40 & Season < 63) %>% mutate(Season = factor(Season)), aes(x = RMSE, y = Season)) + 
   geom_density_ridges(scale = 0.8) + 
   labs(title = "RMSE from 1990 to 2013", x = "RMSE", y = "Season") + 
   theme(plot.title = element_text(hjust = 0.5))
@@ -411,13 +412,13 @@ for (i in 1:5) {
 ```
 
 ```{r}
-ID_name<-as.matrix(Training%>% 
+ID_name=as.matrix(Training%>% 
   group_by(ID) %>% 
   slice(1) %>% dplyr::select(ID))
 
 
-plot_list_a <- list()
-plot_list_b <- list()
+plot_list_a = list()
+plot_list_b = list()
 
 for (i in 1:5) {
   example_hurri = as.data.frame(Y_table_set[[i*5]])
@@ -440,15 +441,15 @@ for (i in 1:5) {
                        values = c("Observed" = "#1E90FF", "Predicted" = "orange"),
                        labels = c("Observation", "Prediction"))+
     theme(plot.title = element_text(hjust = 0.5))
-  plot_list_a[[i]] <- graph_a
-  plot_list_b[[i]] <- graph_b
+  plot_list_a[[i]] = graph_a
+  plot_list_b[[i]] = graph_b
 
 }
 
 
 
-grid_a <- grid.arrange(grobs = plot_list_a[c(1:4)], ncol = 2, nrow=2)
-grid_b <- grid.arrange(grobs = plot_list_b[c(1:4)], ncol = 2, nrow=2)
+grid_a = grid.arrange(grobs = plot_list_a[c(1:4)], ncol = 2, nrow=2)
+grid_b = grid.arrange(grobs = plot_list_b[c(1:4)], ncol = 2, nrow=2)
 
 
 
@@ -461,7 +462,7 @@ ggsave(filename = "predic_plots/b_1_4.png",grid_b,width = 6, height = 4, dpi = 3
 library(cowplot)
 
 # create the plots
-plot_list_c <- list()
+plot_list_c = list()
 
 for (i in 1:5) {
   example_hurri = as.data.frame(Y_table_set[[i*5]])
@@ -473,20 +474,20 @@ for (i in 1:5) {
     geom_line(aes(y = wind_obs, color = "Observed")) +
     geom_line(aes(y = wind_predict, color = "Predicted")) +
     labs(title = ID_name[i*5,], x = "Time Index", y = "Wind Speed") +
-    theme(legend.position = "none")+
+    theme(legend.position = "none") +
     theme(plot.title = element_text(hjust = 0.5))
   
-  plot_list_c[[i]] <- graph_b
+  plot_list_c[[i]] = graph_b
 }
 
 # arrange the plots using grid.arrange
-grid_c <- grid.arrange(grobs = plot_list_c[c(1:4)], ncol = 2, nrow=2)
+grid_c = grid.arrange(grobs = plot_list_c[c(1:4)], ncol = 2, nrow=2)
 
 # extract the legends from each plot
 
 
 # merge the legends into one common legend
-legend <- cowplot::get_legend(plot_list_c[[1]]+theme(legend.position="bottom"))
+legend = cowplot::get_legend(plot_list_c[[1]]+theme(legend.position="bottom"))
 
 # add the common legend to the grid of plots
 plot_grid(grid_c, legend, ncol = 1, rel_heights = c(1, .1))

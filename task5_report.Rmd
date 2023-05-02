@@ -83,22 +83,17 @@ First we need to pre-process the data. We only kept observations that occurred o
 Posterior summaries and 95% credible intervals of $\gamma$ is shown in table \ref{table:sum} and table \ref{table:ci}. We are mainly interested in answering two questions. Are there seasonal differences in hurricane wind speeds? Is there evidence to support the claim that hurricane wind speeds have been increasing over the years? The convergence of parameter $\gamma_{year}$ and $\gamma_{active}$ is shown in figure \ref{Year} and figure \ref{Active}. The two parameters converged after MCMC, and $\gamma_{active}$ had a better performance on convergence than $\gamma_{year}$. Thus we could answer the two questions using the 95% credible intervals. Since the credible intervals for both parameters contain zero, the conclusion is that there is no seasonal or yearly difference in hurricane wind speeds.
 
 ## Hurricane wind speed prediction
-Given parameters $\gamma$ and $\bm{\beta_i}$ which is the coefficients associated the $i$th hurricane, the predicted wind speed of the $i$-th hurricane at $t+6$ time stamp, denoted as $\hat{Y}_i(t+6)$ could be computed as:
-$$\hat{Y}_i(t+6) = \bm{\beta_i}^T \mathbf{Z_i}(t) + \mathbf{X_i}\gamma$$
+Given parameters $\bm{\gamma}$ and $\bm{\beta_i}$ which is the coefficients associated the $i$th hurricane, the predicted wind speed of the $i$-th hurricane at $t+6$ time stamp, denoted as $\hat{Y}_i(t+6)$ could be computed as:
+$$\hat{Y}_i(t+6) = \bm{\beta_i}^T \mathbf{Z_i}(t) + \mathbf{X_i}\bm{\gamma}$$
 where $\bm{\beta_i} = (\beta_{0,i}, \beta_{1,i}, ..., \beta_{4,i})$, and $\mathbf{Z_i}(t) = (1, \ Y_i(t), \ \Delta_{i,1}(t), \ \Delta_{i,2}(t), \ \Delta_{i,3}(t))$.\par
 
-Based on the burn-in number $8000$ as concluded in MCMC parameter convergence diagnostic section, we calculated the parameters to be used to make prediction, and predict the wind speeds of each hurricane at each time stamp, except for the first two time stamps. We computed the RMSE and R-squared of each hurricane, as partly shown in the table \ref{table:summary}.
+Based on the burn-in number $8000$ as concluded in MCMC parameter convergence diagnostic section, we calculated the parameters to be used to make prediction, and predict the wind speeds of each hurricane at each time stamp, except for the first two time stamps. We computed the RMSE and R-squared of each hurricane, as partly shown in the table \ref{table:summary}. It can be observed that different hurricanes perform variously on RMSE and R-squared. Generally the RMSE for selected hurricanes is around $3$ to $8$, and the R-squared is within $0.7$ to $1.0$. However, there is also extremely low R-squared($0.30$ as shown) and high RMSE($9.64$ as shown).\par
 
-The overall RMSE performance of difference hurricanes is shown in figure \ref{RMSE distribution}.
+The prediction performance on several chosen example hurricanes is shown in figure \ref{Time series prediction plot} and figure \ref{Prediction vs. observation}. As shown in figure\ref{Time series prediction plot}, the predicted wind speed overall nicely fit the observed wind speed at each time index of those hurricanes, though performance is better on example hurricane 'ABLE.1951' than other examples. According to figure\ref{Prediction vs. observation}, the prediction and observation data points fit well as a linear line with slope $=1$. Digging deeper, the Bayesian model performs much better when the wind speed is stable, but worse when there exits some fluctuations of wind speed. More specifically, the Bayesian model's prediction has a latency in responding to the fluctuation of observed wind speed, and the changing of predicted speed is generally one unit time index behind observed speed.\par
 
-The overall R-squared performance of difference hurricanes is shown in figure \ref{$R^2$ distribution}.
+The overall RMSE performance of difference hurricanes is shown in figure \ref{RMSE distribution}. And the overall R-squared performance of difference hurricanes is shown in figure \ref{$R^2$ distribution}. The RMSE follows an very right-skewed distribution, with most RMSEs distributed around $2$ to $6$, and distribution peak is around $3.5$. The distribution of R-squared then follows a very left-skewed distribution with most of the values distributed from $0.875$ to $1$, and the peak is around $0.94$. There also exists some extremely large RMSEs and small R-squareds, which may need further investigation.\par
 
-The prediction performance on random chosen example hurricanes is shown in figure \ref{Time series prediction plot} and figure \ref{Prediction vs. observation}.
-
-Furthermore, we examined the distribution of RMSE across various properties of hurricanes is shown in figure \ref{RMSE under different natures} and figure \ref{RMSE under different months}.
-
-We observed that hurricanes belong to nature of "Not Rated" and "Tropical Storm" have an average higher RMSE than other hurricanes. Besides, hurricanes happening in summer from June to September, also have higher RMSE than other months.
-
+Furthermore, we examined the distribution of RMSE across various properties of hurricanes is shown in figure \ref{RMSE under different natures} and figure \ref{RMSE under different months}. We observed that hurricanes belong to nature of "Not Rated" and "Tropical Storm" have an average higher RMSE than other hurricanes. Besides, hurricanes happening in summer from June to September, also have higher RMSE than other months.\par
 
 
 # Discussion
@@ -190,20 +185,6 @@ ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.8\textwidth]{predic_plots/rmse1.png}
-  \caption{RMSE distribution}
-  \label{RMSE distribution}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=0.8\textwidth]{predic_plots/R_square.png}
-  \caption{$R^2$ distribution}
-  \label{$R^2$ distribution}
-\end{figure}
-
-\begin{figure}[ht]
-  \centering
   \includegraphics[width=0.8\textwidth]{predic_plots/b_merge.png}
   \caption{Time series prediction plot}
   \label{Time series prediction plot}
@@ -214,6 +195,20 @@ ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
   \includegraphics[width=0.8\textwidth]{predic_plots/a_1_4.png}
   \caption{Prediction vs. observation}
   \label{Prediction vs. observation}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/rmse1.png}
+  \caption{RMSE distribution}
+  \label{RMSE distribution}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{predic_plots/R_square.png}
+  \caption{$R^2$ distribution}
+  \label{$R^2$ distribution}
 \end{figure}
 
 \begin{figure}[ht]
