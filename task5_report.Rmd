@@ -52,6 +52,7 @@ The dataset, `hurrican703.csv`, collected the track data of 702 hurricanes in th
 \item Season: In which year the hurricane occurred
 \item Month: In which month the hurricane occurred
 \item Nature: Nature of the hurricane
+  
   ET: Extra Tropical
   
   DS: Disturbance
@@ -64,7 +65,7 @@ The dataset, `hurrican703.csv`, collected the track data of 702 hurricanes in th
 
 \item Time: dates and time of the record
 \item Latitude and Longitude: The location of a hurricane check point
-\item Wind.kt Maximum wind speed (in Knot) at each check point
+\item Wind.kt: Maximum wind speed (in Knot) at each check point
 \end{itemize}
 
 ## Data pre-processing
@@ -77,7 +78,7 @@ First we need to pre-process the data. We only kept observations that occurred o
 Let $Y_{i}(t)$ denote the wind speed of the $i$th hurricane at time $t$ (in hours) since the hurricane began. We propose a Bayesian model to characterize the wind speed of the $i$th hurricane 6 hours later as follows:
 $$Y_{i}(t+6) =\beta_{0,i}+\beta_{1,i}Y_{i}(t) + \beta_{2,i}\Delta_{i,1}(t)+
 \beta_{3,i}\Delta_{i,2}(t) +\beta_{4,i}\Delta_{i,3}(t) + \mathbf{X}_i^\top\boldsymbol\gamma+ \epsilon_{i}(t),$$
-where $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ are the changes of latitude, longitude and wind speed between $t-6$ and $t$, $\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{4,i})^\top$ are the random coefficients, and $\mathbf{X}_i = (x_{i,1},\ldots,x_{i,6})^\top$ are covariates with fixed effects $\boldsymbol\gamma$. Here, $x_{i,1}$ is the calendar year of the $i$-th hurricane, $x_{i,2}$ is the indicator variable of the month in active season (August-October) when the $i$-th hurricane started, and $x_{i,3},\ldots,x_{i,6}$ are indicator variables of the four types (ES, NR, SS, and TS) of the $i$-th hurricane when it began. We assume that the error term $\epsilon_{i}(t)\sim N(0,\sigma^2)$ and is independent across $t$.
+where $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ are the changes of latitude, longitude and wind speed between $t-6$ and $t$, $\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{4,i})^\top$ are the random coefficients, and $\mathbf{X}_i = (x_{i,1},\ldots,x_{i,6})^\top$ are covariates with fixed effects $\boldsymbol\gamma$. Here, $x_{i,1}$ is the calendar year of the $i$-th hurricane measured with respect to 1950, $x_{i,2}$ is the indicator variable of the month in active season (August-October) when the $i$-th hurricane started, and $x_{i,3},\ldots,x_{i,6}$ are indicator variables of the four types (ES, NR, SS, and TS) of the $i$-th hurricane when it began. We assume that the error term $\epsilon_{i}(t)\sim N(0,\sigma^2)$ and is independent across $t$.
 
 ## Prior Distribution for Each Parameter
 
@@ -103,7 +104,7 @@ Denote $n$ as the number of observed hurricanes and denote $\mathbf{B}= (\boldsy
 \begin{align*}
 \pi(\Theta)=&\ \pi(\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma)\\
 =&\ \pi(\mathbf{B}^\top\mid\boldsymbol{\mu}^\top,\boldsymbol{\Sigma})\pi(\boldsymbol{\mu}^\top,\boldsymbol{\Sigma})\pi(\boldsymbol\gamma)\pi(\sigma)\\
-=&\ \left(\prod_{i=1}^n\pi(\boldsymbol\beta_i^\top\mid\boldsymbol{\mu}^\top,\boldsymbol{\Sigma})\right)\pi(\boldsymbol{\mu})\pi(\boldsymbol{\Sigma})\pi(\boldsymbol\gamma)\pi(\sigma)\displaybreak\\
+=&\ \left(\prod_{i=1}^n\pi(\boldsymbol\beta_i^\top\mid\boldsymbol{\mu}^\top,\boldsymbol{\Sigma})\right)\pi(\boldsymbol{\mu})\pi(\boldsymbol{\Sigma})\pi(\boldsymbol\gamma)\pi(\sigma)\\
 =&\ \prod_{i=1}^n\left[(2\pi)^{-5/2}|\boldsymbol{\Sigma}|^{-1/2}\exp\left(-\frac{1}{2}(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)\right)\right] \qquad\qquad\qquad\qquad\qquad\qquad\qquad\;\, \boldsymbol\beta_i\sim N(\boldsymbol{\mu},\boldsymbol{\Sigma})\\
 &\ \times(2\pi)^{-5/2}|\boldsymbol{V}|^{-1/2}\exp\left(-\frac{1}{2}\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu\right) \qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad \boldsymbol{\mu}\sim N(\boldsymbol{0},\boldsymbol{V})\\
 &\ \times\frac{|\boldsymbol{S}|^{\nu/2}}{2^{5\nu/2}\Gamma_5(\nu/2)}|\boldsymbol{\Sigma}|^{-(\nu+6)/2}\exp\left(-\frac{1}{2}\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})\right) \quad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad \boldsymbol{\Sigma}\sim \mathcal{W}^{-1}(\boldsymbol{S},\nu)\\
@@ -235,7 +236,7 @@ At the same time we compute the acceptance probability, $\alpha$, as the minimum
   \label{para1} 
 \end{figure}
 
-Through trace plots, it can be seen that the convergence speed of each parameter is very fast, and after 1000 iterations, all parameters except the intercept of $\mu$ have converged with fluctuations, while the others have reached convergence.
+Through trace plots, it can be seen that the convergence speed of each parameter is very fast, and after 1000 iterations, all parameters except the intercept of $\boldsymbol\mu$ have converged with fluctuations, while the others have reached convergence.
 
 \newpage
 
@@ -296,7 +297,7 @@ It can be seen from the plots that the autocorrelation of each parameter decreas
 Posterior summaries and 95% credible intervals of $\boldsymbol\gamma$ is shown in table \ref{table:sum} and table \ref{table:ci}. We are mainly interested in answering two questions. Are there seasonal differences in hurricane wind speeds? Is there evidence to support the claim that hurricane wind speeds have been increasing over the years? The convergence of parameter $\gamma_{year}$ and $\gamma_{active}$ is shown in figure \ref{Year} and figure \ref{Active}. The two parameters converged after MCMC, and $\gamma_{active}$ had a better performance on convergence than $\gamma_{year}$. Thus we could answer the two questions using the 95% credible intervals. Since the credible intervals for both parameters contain zero, the conclusion is that there is no seasonal or yearly difference in hurricane wind speeds.
 
 ## Hurricane wind speed prediction
-Given the estimates of parameters $\hat{\boldsymbol{\gamma}}$ and $\hat{\boldsymbol\beta}_i$ which is the coefficients associated the $i$th hurricane, the predicted wind speed of the $i$-th hurricane at $t+6$ time stamp, denoted as $\hat{Y}_i(t+6)$ could be computed as:
+Given the estimates of parameters $\boldsymbol{\gamma}$ and $\boldsymbol\beta_i$ which is the coefficients associated the $i$th hurricane, the predicted wind speed of the $i$-th hurricane at $t+6$ time stamp, denoted as $\hat{Y}_i(t+6)$ could be computed as:
 $$\hat{Y}_i(t+6) = \mathbf{Z}_i(t)^\top\hat{\boldsymbol\beta}_i  + \mathbf{X}_i^\top \hat{\boldsymbol{\gamma}},$$
 where $\bm{\beta}_i = (\beta_{0,i}, \beta_{1,i}, ..., \beta_{4,i})^\top$, and $\mathbf{Z}_i(t) = (1, \ Y_i(t), \ \Delta_{i,1}(t), \ \Delta_{i,2}(t), \ \Delta_{i,3}(t))^\top$.\par
 
@@ -319,7 +320,8 @@ Furthermore, we examined the distribution of RMSE across various properties of h
 Hongjie Liu worked on mathematical derivations and implementing the MCMC algorithm in R. Additionally, he was responsible for writing section 2 of the report and delivering the presentation for task 1. I am grateful to my teammates for their thorough review of my mathematical derivations and R functions. Special thanks to Zijian, who also developed his own set of R functions for the MCMC algorithm and reviewed mine. I would also like to express my gratitude to Shaohan for identifying a critical error in my R function.
 
 
-\newpage
+\clearpage
+
 # Appendices {-}
 
 ## Figures and Tables {-}
