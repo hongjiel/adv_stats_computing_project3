@@ -78,7 +78,7 @@ First we need to pre-process the data. We only kept observations that occurred o
 Let $Y_{i}(t)$ denote the wind speed of the $i$th hurricane at time $t$ (in hours) since the hurricane began. We propose a Bayesian model to characterize the wind speed of the $i$th hurricane 6 hours later as follows:
 $$Y_{i}(t+6) =\beta_{0,i}+\beta_{1,i}Y_{i}(t) + \beta_{2,i}\Delta_{i,1}(t)+
 \beta_{3,i}\Delta_{i,2}(t) +\beta_{4,i}\Delta_{i,3}(t) + \mathbf{X}_i^\top\boldsymbol\gamma+ \epsilon_{i}(t),$$
-where $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ are the changes of latitude, longitude and wind speed between $t-6$ and $t$, $\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{4,i})^\top$ are the random coefficients, and $\mathbf{X}_i = (x_{i,1},\ldots,x_{i,6})^\top$ are covariates with fixed effects $\boldsymbol\gamma$. Here, $x_{i,1}$ is the calendar year of the $i$-th hurricane measured with respect to 1950, $x_{i,2}$ is the indicator variable of the month in active season (August-October) when the $i$-th hurricane started, and $x_{i,3},\ldots,x_{i,6}$ are indicator variables of the four types (ES, NR, SS, and TS) of the $i$-th hurricane when it began. We assume that the error term $\epsilon_{i}(t)\sim N(0,\sigma^2)$ and is independent across $t$.
+where $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ are the changes of latitude, longitude and wind speed between $t-6$ and $t$, $\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{4,i})^\top$ are the random coefficients, and $\mathbf{X}_i = (x_{i,1},\ldots,x_{i,6})^\top$ are covariates with fixed effects $\boldsymbol\gamma$. Here, $x_{i,1}$ is the calendar year of the $i$-th hurricane measured with respect to 1950 (with values 0 to 63), $x_{i,2}$ is the indicator variable of the month in active season (August-October) when the $i$-th hurricane started, and $x_{i,3},\ldots,x_{i,6}$ are indicator variables of the four types (ES, NR, SS, and TS) of the $i$-th hurricane when it began. We assume that the error term $\epsilon_{i}(t)\sim N(0,\sigma^2)$ and is independent across $t$.
 
 ## Prior Distribution for Each Parameter
 
@@ -100,7 +100,7 @@ For the error term, we assume the prior of $\sigma$ is a half-Cauchy distributio
 
 ### Joint Prior Distribution
 
-Denote $n$ as the number of observed hurricanes and denote $\mathbf{B}= (\boldsymbol{\beta}_{1}^\top,...,\boldsymbol{\beta}_{n}^\top)^\top$. The joint prior distribution of $\Theta=(\mathbf{B}^\top,\boldsymbol{\mu}^\top, \boldsymbol\Sigma,\boldsymbol\gamma^\top,\sigma^2)$ is given by
+Denote $n$ as the number of observed hurricanes and denote $\mathbf{B}= (\boldsymbol{\beta}_{1}^\top,...,\boldsymbol{\beta}_{n}^\top)^\top$. The joint prior distribution of $\Theta=(\mathbf{B}^\top,\boldsymbol{\mu}^\top, \boldsymbol\Sigma,\boldsymbol\gamma^\top,\sigma)$ is given by
 \begin{align*}
 \pi(\Theta)=&\ \pi(\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma)\\
 =&\ \pi(\mathbf{B}^\top\mid\boldsymbol{\mu}^\top,\boldsymbol{\Sigma})\pi(\boldsymbol{\mu}^\top,\boldsymbol{\Sigma})\pi(\boldsymbol\gamma)\pi(\sigma)\\
@@ -116,13 +116,13 @@ Denote $n$ as the number of observed hurricanes and denote $\mathbf{B}= (\boldsy
 
 ### Likelihood Function
 
-Let $m_i$ denote the number of observations, excluding the first two observations and let $\boldsymbol{Y}_i=(Y_{i,1},\ldots Y_{i,m_i})^\top$ denote the wind speed data of the $i$-th hurricane, excluding the first two observations, where $Y_{i,j}=Y_i(6j+6)$. Denote $\boldsymbol{Y}=(\boldsymbol{Y}_1^\top,\boldsymbol{Y}_2^\top,\ldots,\boldsymbol{Y}_n^\top)^\top$ and $\mathbf Z_{i,j}=(1,Y_{i,j},\Delta_{i,1}(6j+6),\Delta_{i,2}(6j+6),\Delta_{i,3}(6j+6))^\top$.
+Let $m_i$ denote the number of observations, excluding the first two observations and let $\mathbf{Y}_i=(Y_{i,1},\ldots Y_{i,m_i})^\top$ denote the wind speed data of the $i$-th hurricane, excluding the first two observations, where $Y_{i,j}=Y_i(6j+6)$. Denote $\mathbf{Y}=(\mathbf{Y}_1^\top,\mathbf{Y}_2^\top,\ldots,\mathbf{Y}_n^\top)^\top$ and $\mathbf Z_{i,j}=(1,Y_{i,j},\Delta_{i,1}(6j+6),\Delta_{i,2}(6j+6),\Delta_{i,3}(6j+6))^\top$.
 
 Given that
-$$Y_{i,j}\mid \mathbf{B}^\top,\boldsymbol\gamma^\top,\sigma\overset{i.i.d.}{\sim} N(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i + \mathbf{X}_i^\top\boldsymbol\gamma,\sigma^2),\qquad\forall i=1,\ldots,n,\; j=1,\cdots,m_i$$
-The likelihood function of parameters $\Theta=(\mathbf{B}^\top,\boldsymbol{\mu}^\top, \boldsymbol\Sigma,\boldsymbol\gamma^\top,\sigma^2)$ is given by
+$$Y_{i,j}\mid \mathbf{B}^\top,\boldsymbol\gamma^\top,\sigma\sim N(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i + \mathbf{X}_i^\top\boldsymbol\gamma,\sigma^2),\qquad\forall i=1,\ldots,n,\; j=1,\cdots,m_i$$
+the likelihood function of parameters $\Theta=(\mathbf{B}^\top,\boldsymbol{\mu}^\top, \boldsymbol\Sigma,\boldsymbol\gamma^\top,\sigma)$ is given by
 $$\begin{aligned}
-L_{\boldsymbol{Y}}(\Theta)=&\ \prod_{i=1}^nL_{\boldsymbol{Y}_i}(\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma)\\
+L_{\mathbf{Y}}(\Theta)=&\ \prod_{i=1}^nL_{\mathbf{Y}_i}(\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma)\\
 =&\ \prod_{i=1}^n\prod_{j=1}^{m_i}L_{Y_{i,j}}(\boldsymbol\beta_i^\top,\boldsymbol\gamma^\top,\sigma)\\
 =&\ \prod_{i=1}^n\prod_{j=1}^{m_i}\left[\frac{1}{\sqrt{2\pi}\sigma}\exp\left(-\frac{(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2}{2\sigma^2}\right)\right]\\
 =&\ \left(\prod_{i=1}^n(\sqrt{2\pi}\sigma)^{-m_i}\right)\cdot\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).
@@ -130,29 +130,29 @@ L_{\boldsymbol{Y}}(\Theta)=&\ \prod_{i=1}^nL_{\boldsymbol{Y}_i}(\mathbf{B}^\top,
 
 ### Joint Posterior Distribution
 
-The joint posterior distribution of $\Theta=(\mathbf{B}^\top,\boldsymbol{\mu}^\top, \boldsymbol\Sigma,\boldsymbol\gamma^\top,\sigma^2)$ is given by
+The joint posterior distribution of $\Theta=(\mathbf{B}^\top,\boldsymbol{\mu}^\top, \boldsymbol\Sigma,\boldsymbol\gamma^\top,\sigma)$ is given by
 \begin{align}
-\pi(\Theta\mid \boldsymbol{Y}^\top)
-\propto &\ L_{\boldsymbol{Y}}(\Theta)\pi(\Theta)\nonumber\\
+\pi(\Theta\mid \mathbf{Y}^\top)
+\propto &\ L_{\mathbf{Y}}(\Theta)\pi(\Theta)\nonumber\\
 \propto &\ \frac{|\boldsymbol{\Sigma}|^{-(n+\nu+6)/2}}{1+(\sigma/10)^2}\exp\left[-\frac{1}{2}\left(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu+\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})+400\|\boldsymbol\gamma\|_2^2\right)\right]\nonumber\\
 &\ \times I(\sigma>0)\sigma^{-\sum_{i=1}^n m_i}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).\label{post}
 \end{align}
 
 ## Conditional Posterior Distribution for Each Parameter
 
-We aim to sample each parameter from the joint posterior distribution $\pi(\Theta\mid \boldsymbol{Y}^\top)$, but but direct sampling is impractical. Fortunately, the proposed Bayesian model includes several conditionally conjugate priors, which facilitate posterior computations using a hybrid Metropolis-Hastings/Gibbs algorithm. Given that $\pi(\Theta\mid \boldsymbol{Y}^\top)$ takes the form (\ref{post}), the conditional posterior distribution for each parameter is as follows:
+We aim to sample each parameter from the joint posterior distribution $\pi(\Theta\mid \mathbf{Y}^\top)$, but but direct sampling is impractical. Fortunately, the proposed Bayesian model includes several conditionally conjugate priors, which facilitate posterior computations using a hybrid Metropolis-Hastings/Gibbs algorithm. Given that $\pi(\Theta\mid \mathbf{Y}^\top)$ takes the form (\ref{post}), the conditional posterior distribution for each parameter is as follows:
 
-1. $\boldsymbol\beta_i\mid \boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top$ follows a multivariate normal distribution with mean vector
+1. $\boldsymbol\beta_i\mid \boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top$ follows a multivariate normal distribution with mean vector
 $$\left(\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}\left(\boldsymbol{\Sigma}^{-1}\boldsymbol\mu+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf{X}_i^\top\boldsymbol\gamma)\mathbf Z_{i,j-1}\right)$$
 and covariance matrix $$\left(\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}.$$
-2. $\boldsymbol{\mu}\mid \mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top$ follows a multivariate normal distribution with mean vector $$\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)$$ and covariance matrix $$\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}.$$
-3. $\boldsymbol{\Sigma}\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top$ follows an inverse-Wishart distribution with degrees of freedom $(n+\nu)$ and scale matrix  $$\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top.$$
-4. $\boldsymbol\gamma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma,\boldsymbol{Y}^\top$ follows a multivariate normal distribution with mean vector $$\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\left(-\frac{1}{\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-Y_{i,j})\mathbf{X}_i\right)$$ and covariance matrix $$\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}.$$
+2. $\boldsymbol{\mu}\mid \mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top$ follows a multivariate normal distribution with mean vector $$\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)$$ and covariance matrix $$\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}.$$
+3. $\boldsymbol{\Sigma}\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top$ follows an inverse-Wishart distribution with degrees of freedom $(n+\nu)$ and scale matrix  $$\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top.$$
+4. $\boldsymbol\gamma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma,\mathbf{Y}^\top$ follows a multivariate normal distribution with mean vector $$\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\left(-\frac{1}{\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-Y_{i,j})\mathbf{X}_i\right)$$ and covariance matrix $$\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}.$$
 
 Because of conjugacy, the parameters $\boldsymbol\beta_i$, $\boldsymbol{\mu}$, $\boldsymbol{\Sigma}$, and $\boldsymbol\gamma$ can be easily updated in a Gibbs sampling fashion. The details of derivation can be found in the appendix.
 
 The conditional posterior distribution of $\sigma$ can be expressed as
-$$\pi(\sigma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\boldsymbol{Y}^\top) \propto\ I(\sigma>0)\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).$$
+$$\pi(\sigma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\mathbf{Y}^\top) \propto\ I(\sigma>0)\frac{\sigma^{-\sum_{i=1}^n m_i}}{1+(\sigma/10)^2}\exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right).$$
 We propose to sample $\sigma$ using a Metropolis-Hastings (MH) step with a uniform proposal
 distribution.
 
@@ -170,8 +170,8 @@ Before explaining the algorithm in detail, let's define the hyperparameters:
 To begin this algorithm, for each iteration, we firstly Initialize the values of $\boldsymbol{\beta}_i^{(0)}$ $\boldsymbol{\mu}^{(0)}$,$\boldsymbol{\Sigma}^{(0)}$, $\boldsymbol\gamma^{(0)}$, $\sigma^{(0)}$to some value we obtain from lmm model. 
 
 - Next For each iteration $k=1,2,\ldots,N_{iter}$:  
-Sample $\boldsymbol{\beta}_i^{(k)}$ from $\pi(\boldsymbol\beta_i\mid \boldsymbol{\mu}^{(k-1)},\boldsymbol{\Sigma}^{(k-1)},\boldsymbol\gamma^{(k-1)},\sigma^{(k-1)},\boldsymbol{Y}^\top)$  
-Sample $\boldsymbol{\mu}^{(k)}$ from $\pi(\boldsymbol{\mu}\mid\mathbf B^{(k)}, \boldsymbol{\Sigma}^{(k-1)},\boldsymbol{\gamma}^{(k-1)}, \sigma^{(k-1)}, \boldsymbol{Y}^\top)$  
+Sample $\boldsymbol{\beta}_i^{(k)}$ from $\pi(\boldsymbol\beta_i\mid \boldsymbol{\mu}^{(k-1)},\boldsymbol{\Sigma}^{(k-1)},\boldsymbol\gamma^{(k-1)},\sigma^{(k-1)},\mathbf{Y}^\top)$  
+Sample $\boldsymbol{\mu}^{(k)}$ from $\pi(\boldsymbol{\mu}\mid\mathbf B^{(k)}, \boldsymbol{\Sigma}^{(k-1)},\boldsymbol{\gamma}^{(k-1)}, \sigma^{(k-1)}, \mathbf{Y}^\top)$  
 Sample $\boldsymbol{\Sigma}^{(k)}$ from $\pi(\boldsymbol{\Sigma}\mid \mathbf B^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol\gamma^{(k-1)}, \sigma^{(k-1)}, \mathbf{Y}^\top)$  
 Sample $\boldsymbol{\gamma}^{(k)}$ from $\pi(\boldsymbol{\gamma}\mid \mathbf B^{(k)}, \boldsymbol{\mu}^{(k)}, \boldsymbol\Sigma^{(k)},\sigma^{(k-1)}, \mathbf{Y}^\top)$
 
@@ -529,41 +529,41 @@ algorithm consisting of Gibbs steps and Metropolis-Hastings steps}
 ## Derivation of Conditional Posterior Distribution for Each Parameter {-}
 1. $\mathbf{B}$:
 $$\begin{aligned}
-&\ \pi(\boldsymbol\beta_i\mid \boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)\\
+&\ \pi(\boldsymbol\beta_i\mid \boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top)\\
 \propto&\ \exp\left[-\frac{1}{2}(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)-\frac{1}{2\sigma^2}\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right]\\
 \propto&\ \exp\left[-\frac{1}{2}\left((\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}(-2\boldsymbol\beta_i^\top(Y_{i,j}-\mathbf{X}_i^\top\boldsymbol\gamma)\mathbf Z_{i,j-1}+\boldsymbol\beta_i^\top(\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top)\boldsymbol\beta_i)\right)\right]\\
 \propto&\ \exp\left\{-\frac{1}{2}\left[\boldsymbol\beta_i^\top\left(\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)\boldsymbol\beta_i-2\boldsymbol\beta_i^\top\left(\boldsymbol{\Sigma}^{-1}\boldsymbol\mu+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf{X}_i^\top\boldsymbol\gamma)\mathbf Z_{i,j-1}\right)\right]\right\}.
 \end{aligned}$$
 Thus we have
 $$\begin{aligned}\\
-&\ \boldsymbol\beta_i\mid \boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top\\
+&\ \boldsymbol\beta_i\mid \boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top\\
 \sim&\ N\left(\left(\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}\left(\boldsymbol{\Sigma}^{-1}\boldsymbol\mu+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf{X}_i^\top\boldsymbol\gamma)\mathbf Z_{i,j-1}\right), \left(\boldsymbol{\Sigma}^{-1}+\frac{1}{\sigma^2}\sum_{j=1}^{m_i}\mathbf Z_{i,j-1}\mathbf Z_{i,j-1}^\top\right)^{-1}\right).\end{aligned}$$
 2. $\boldsymbol{\mu}$:
 $$\begin{aligned}
-&\ \pi(\boldsymbol{\mu}\mid \mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)\\
+&\ \pi(\boldsymbol{\mu}\mid \mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top)\\
 \propto&\ \exp\left[-\frac{1}{2}\left(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\boldsymbol\mu^\top\boldsymbol{V}^{-1}\boldsymbol\mu\right)\right]\\
 \propto&\ \exp\left\{-\frac{1}{2}\left[\boldsymbol\mu-(n\boldsymbol\Sigma^{-1}+\boldsymbol V^{-1})^{-1}\boldsymbol\Sigma^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)\right]^\top(n\boldsymbol\Sigma^{-1}+\boldsymbol V^{-1})\left[\boldsymbol\mu-(n\boldsymbol\Sigma^{-1}+\boldsymbol V^{-1})^{-1}\boldsymbol\Sigma^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)\right]\right\}\\
 \propto&\ \exp\left\{-\frac{1}{2}\left[\boldsymbol\mu-\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)\right]^\top(\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1})^{-1}\left[\boldsymbol\mu-\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right)\right]\right\}.
 \end{aligned}$$
 Thus we have
-$$\boldsymbol{\mu}\mid \mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top\sim N\left(\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right), \boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\right).$$
+$$\boldsymbol{\mu}\mid \mathbf{B}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top\sim N\left(\boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\left(\sum_{i=1}^n\boldsymbol\beta_i\right), \boldsymbol V(n\boldsymbol V+\boldsymbol\Sigma)^{-1}\right).$$
 3. $\boldsymbol{\Sigma}$:
 $$\begin{aligned}
-\pi(\boldsymbol{\Sigma}\mid\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top)
+\pi(\boldsymbol{\Sigma}\mid\mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top)
 \propto&\ |\boldsymbol{\Sigma}|^{-(n+\nu+6)/2}\exp\left[-\frac{1}{2}\left(\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol\beta_i-\boldsymbol\mu)+\mathrm{tr}(\boldsymbol{S}\boldsymbol{\Sigma}^{-1})\right)\right]\\
 \propto&\ |\boldsymbol{\Sigma}|^{-(n+\nu+6)/2}\exp\left[-\frac{1}{2}\mathrm{tr}\left(\left(\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top\right)\boldsymbol{\Sigma}^{-1}\right)\right].
 \end{aligned}$$
 Thus we have
-$$\boldsymbol{\Sigma}\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\boldsymbol{Y}^\top\sim \mathcal{W}^{-1}\left(\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top, n+\nu\right).$$
+$$\boldsymbol{\Sigma}\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top\sim \mathcal{W}^{-1}\left(\boldsymbol{S}+\sum_{i=1}^n(\boldsymbol\beta_i-\boldsymbol\mu)(\boldsymbol\beta_i-\boldsymbol\mu)^\top, n+\nu\right).$$
 4. $\boldsymbol\gamma$:
 $$\begin{aligned}
-&\ \pi(\boldsymbol\gamma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma,\boldsymbol{Y}^\top)\\
+&\ \pi(\boldsymbol\gamma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma,\mathbf{Y}^\top)\\
 \propto&\ \exp\left(-200\|\boldsymbol\gamma\|_2^2-\frac{1}{2\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(Y_{i,j}-\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-\mathbf{X}_i^\top\boldsymbol\gamma)^2\right)\\
 \propto&\ \exp\left\{-\frac{1}{2}\left[\boldsymbol\gamma^\top\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)\boldsymbol\gamma-2\boldsymbol\gamma^\top\left(-\frac{1}{\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-Y_{i,j})\mathbf{X}_i\right)\right]\right\}.
 \end{aligned}$$
 Thus we have
 $$\begin{aligned}
-&\ \boldsymbol\gamma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma,\boldsymbol{Y}^\top\\
+&\ \boldsymbol\gamma\mid \mathbf{B}^\top,\boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\sigma,\mathbf{Y}^\top\\
 \sim&\ N\left(\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\left(-\frac{1}{\sigma^2}\sum_{i=1}^n\sum_{j=1}^{m_i}(\mathbf Z_{i,j-1}^\top\boldsymbol\beta_i-Y_{i,j})\mathbf{X}_i\right),\left(400\boldsymbol I+\frac{1}{\sigma^2}\sum_{i=1}^nm_i\mathbf{X}_i\mathbf{X}_i^\top\right)^{-1}\right).
 \end{aligned}$$
 
