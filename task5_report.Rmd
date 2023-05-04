@@ -313,12 +313,15 @@ Furthermore, we examined the distribution of RMSE across various properties of h
 # Discussion
 ## MCMC parameters convergence problem
 
+For the parameter $\gamma_{year}$, at first it had a really bad performance on convergence because we used the origin data of year i.e. 1950-2013. After presentation, thanks to the advice given by Professor Ying Wei, we tried to scale the data to 0-63 since one-year change had little effect on the original year. The convergence then seems pretty good after the adjustment. This may give us a lesson that we should try to scale some of the data if any parameter does not converge through MCMC.
+
 ## Prediction latency of wind speed change
 
 # Group Contributions {-}
 
 Hongjie Liu worked on mathematical derivations and implementing the MCMC algorithm in R. Additionally, he was responsible for writing section 2 of the report and delivering the presentation for task 1. I am grateful to my teammates for their thorough review of my mathematical derivations and R functions. Special thanks to Zijian, who also developed his own set of R functions for the MCMC algorithm and reviewed mine. I would also like to express my gratitude to Shaohan for identifying a critical error in my R function.
 
+Jiajun Tao worked on posterior summaries, credible intervals, and diagnostics of $\gamma$, and was also responsible for the corresponding part of the presentation and the report. Here I would like to express my appreciation to my teammates. I had a great experience in working on this project. The hardest part should be the derivation and the algorithm of MCMC, they really did a great job. Nice to work with those guys!
 
 \clearpage
 
