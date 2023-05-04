@@ -233,6 +233,8 @@ For the parameter $\gamma_{year}$, at first it had a really bad performance on c
 
 ## Prediction latency of wind speed change
 
+It can be observed from the plots that there exists a prediction latency in wind speed on different time points. We suspect that because the model is based on the speed trend from $t-6$ to $t$, thus it tends to continue this trend simulation from $t$ to $t+6$, while $t+6$ may be a complete different situation. Besides, the measurement of wind speed is in unit of $5$ Knot and not that precise, which may also be a reason for inadequate accurate prediction. Further investigation may be needed concerning time series models explanation.
+
 # Group Contributions {-}
 
 Hongjie Liu worked on mathematical derivations and implementing the MCMC algorithm in R. Additionally, he was responsible for writing section 2 of the report and delivering the presentation for task 1. I am grateful to my teammates for their thorough review of my mathematical derivations and R functions. Special thanks to Zijian, who also developed his own set of R functions for the MCMC algorithm and reviewed mine. I would also like to express my gratitude to Shaohan for identifying a critical error in my R function.
@@ -241,7 +243,7 @@ Jiajun Tao worked on posterior summaries, credible intervals, and diagnostics of
 
 Xicheng Xie worked on EDA, model building for MCMC starting value selection, and MCMC algorithm running. He was also responsible for the corresponding part of the presentation, slide-making, and report. Thanks to all the teammates for their collaboration and contribution to this project. The posterior distribution calculation and MCMC building are tough but we all gained a lot from this project. 
 
-Shaohan Chen worked on revising MCMC R functions, predicting wind speed for each time point of different hurricanes, and evaluating the estimation performance. Meanwhile, he was also responsible for the corresponding part of the presentation slide and report. Many thanks to my nice teammates who were more than excellent in doing their jobs, especially the impressive math calculations and MCMC algorithm implementation done by Hongjie and Zijian. Special thanks to Xicheng, who helped deliver the "task 4" presentation for me, when I was still in recovery of my left foot wound and unable to attend our presentation in person. Lastly, I would like to give the best credit to our team again for everybody's great contribution and devotion to the class and projects. Looking forward to our next cooperation.
+Shaohan Chen worked on revising MCMC R functions, predicting wind speed for each time point of different hurricanes, and evaluating the estimation performance. Meanwhile, he was also responsible for the corresponding part of the presentation slide and report. Many thanks to my nice teammates and their excellent work, especially the impressive math calculations and MCMC implementation. Special thanks to Xicheng, who helped deliver the "task 4" presentation for me, when I was still in recovery of my left foot wound and unable to attend our presentation in person. Lastly, I would like to give the best credit again to our team again for everybody's great contribution and devotion to the project. Looking forward to our next cooperation.
 
 Zijian Xu worked on analysis of the MCMC algorithm, including reviewing the algorithm, writing functions to check for errors, visualizing results, conducting diagnostic analysis, and evaluating and improving starting values. Additionally, I wrote the front part of section 3 of the report, which focused on the MCMC algorithm, and contributed to delivering the presentation for task 2.I would like to express my utmost gratitude to my team members who were always available and willing to contribute their efforts to the project.I would like to say that my teammates are humble. In reality, a lot of our work cannot be quantified, and in my opinion, the amount of work we have accomplished is tremendous. For example, writing the report entirely in LaTeX formulas, ensuring the report was well-organized and complete, and continuously formatting and adjusting it. Moreover, each team member had to adjust their sections after every change in the project's direction, which shows that every member was indispensable to the project's success. The project is a result of everyone's hard work and dedication.
 
@@ -249,7 +251,7 @@ Zijian Xu worked on analysis of the MCMC algorithm, including reviewing the algo
 
 # Appendices {-}
 
-## Figures and Tables {-}
+## Figures and Tables
 
 \begin{table}[h]
     \centering
@@ -455,7 +457,7 @@ ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
 
 \clearpage
 
-## R Code {-}
+## R Code
 
 ```{r eval=FALSE}
 # Gibbs sampling for B
@@ -538,7 +540,7 @@ algorithm consisting of Gibbs steps and Metropolis-Hastings steps}
 
 \clearpage
 
-## Derivation of Conditional Posterior Distribution for Each Parameter {-}
+## Derivation of Conditional Posterior Distribution for Each Parameter
 1. $\mathbf{B}$:
 $$\begin{aligned}
 &\ \pi(\boldsymbol\beta_i\mid \boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top)\\

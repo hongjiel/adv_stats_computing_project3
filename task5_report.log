@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.9.22)  4 MAY 2023 00:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.9.15)  4 MAY 2023 00:34
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -620,7 +620,7 @@ Overfull \hbox (19.52188pt too wide) detected at line 292
 
 [3] [4] [5] [6] [7] [8] [9]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 716.
+(Font)              <9> on input line 723.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
@@ -633,7 +633,7 @@ File: parameters_burnin/Mu_parameters_time_series_plot.png Graphic file (type p
 ng)
 <use parameters_burnin/Mu_parameters_time_series_plot.png>
 Package pdftex.def Info: parameters_burnin/Mu_parameters_time_series_plot.png  
-used on input line 775.
+used on input line 782.
 (pdftex.def)             Requested size: 144.53082pt x 96.35388pt.
 <parameters_burnin/Sigma_parameters_time_series_plot.png, id=186, 867.24pt x 57
 8.16pt>
@@ -641,7 +641,7 @@ File: parameters_burnin/Sigma_parameters_time_series_plot.png Graphic file (typ
 e png)
 <use parameters_burnin/Sigma_parameters_time_series_plot.png>
 Package pdftex.def Info: parameters_burnin/Sigma_parameters_time_series_plot.pn
-g  used on input line 778.
+g  used on input line 785.
 (pdftex.def)             Requested size: 144.53082pt x 96.35388pt.
 <parameters_burnin/Gamma_parameters_time_series_plot.png, id=187, 867.24pt x 57
 8.16pt>
@@ -649,7 +649,7 @@ File: parameters_burnin/Gamma_parameters_time_series_plot.png Graphic file (typ
 e png)
 <use parameters_burnin/Gamma_parameters_time_series_plot.png>
 Package pdftex.def Info: parameters_burnin/Gamma_parameters_time_series_plot.pn
-g  used on input line 781.
+g  used on input line 788.
 (pdftex.def)             Requested size: 144.53082pt x 96.35388pt.
 <parameters_burnin/igma_parameters_time_series_plot.png, id=188, 578.16pt x 433
 .62pt>
@@ -657,33 +657,33 @@ File: parameters_burnin/igma_parameters_time_series_plot.png Graphic file (type
  png)
 <use parameters_burnin/igma_parameters_time_series_plot.png>
 Package pdftex.def Info: parameters_burnin/igma_parameters_time_series_plot.png
-  used on input line 784.
+  used on input line 791.
 (pdftex.def)             Requested size: 134.89719pt x 101.1729pt.
 <parameters_burnin/Mu_Parameters_ACF_Plot.png, id=189, 794.97pt x 614.295pt>
 File: parameters_burnin/Mu_Parameters_ACF_Plot.png Graphic file (type png)
 <use parameters_burnin/Mu_Parameters_ACF_Plot.png>
 Package pdftex.def Info: parameters_burnin/Mu_Parameters_ACF_Plot.png  used on 
-input line 792.
+input line 799.
 (pdftex.def)             Requested size: 130.93391pt x 101.1762pt.
 <parameters_burnin/Sigma_Parameters_ACF_Plot.png, id=190, 794.97pt x 614.295pt>
 
 File: parameters_burnin/Sigma_Parameters_ACF_Plot.png Graphic file (type png)
 <use parameters_burnin/Sigma_Parameters_ACF_Plot.png>
 Package pdftex.def Info: parameters_burnin/Sigma_Parameters_ACF_Plot.png  used 
-on input line 795.
+on input line 802.
 (pdftex.def)             Requested size: 130.93391pt x 101.1762pt.
 <parameters_burnin/Gamma_Parameters_ACF_Plot.png, id=191, 794.97pt x 614.295pt>
 
 File: parameters_burnin/Gamma_Parameters_ACF_Plot.png Graphic file (type png)
 <use parameters_burnin/Gamma_Parameters_ACF_Plot.png>
 Package pdftex.def Info: parameters_burnin/Gamma_Parameters_ACF_Plot.png  used 
-on input line 798.
+on input line 805.
 (pdftex.def)             Requested size: 130.93391pt x 101.1762pt.
 <parameters_burnin/igma_Parameters_ACF_Plot.png, id=192, 794.97pt x 614.295pt>
 File: parameters_burnin/igma_Parameters_ACF_Plot.png Graphic file (type png)
 <use parameters_burnin/igma_Parameters_ACF_Plot.png>
 Package pdftex.def Info: parameters_burnin/igma_Parameters_ACF_Plot.png  used o
-n input line 801.
+n input line 808.
 (pdftex.def)             Requested size: 130.93391pt x 101.1762pt.
 <parameters_burnin/Mu_Parameters_Histogram_Plot.png, id=193, 794.97pt x 614.295
 pt>
@@ -691,7 +691,7 @@ File: parameters_burnin/Mu_Parameters_Histogram_Plot.png Graphic file (type png
 )
 <use parameters_burnin/Mu_Parameters_Histogram_Plot.png>
 Package pdftex.def Info: parameters_burnin/Mu_Parameters_Histogram_Plot.png  us
-ed on input line 809.
+ed on input line 816.
 (pdftex.def)             Requested size: 130.93391pt x 101.1762pt.
 <parameters_burnin/Sigma_Parameters_Histogram_Plot.png, id=194, 794.97pt x 614.
 295pt>
@@ -699,47 +699,47 @@ File: parameters_burnin/Sigma_Parameters_Histogram_Plot.png Graphic file (type
 png)
 <use parameters_burnin/Sigma_Parameters_Histogram_Plot.png>
 Package pdftex.def Info: parameters_burnin/Sigma_Parameters_Histogram_Plot.png 
- used on input line 812.
+ used on input line 819.
 (pdftex.def)             Requested size: 130.93391pt x 101.1762pt.
 <jacky_part_pic/year.png, id=195, 421.575pt x 611.28375pt>
 File: jacky_part_pic/year.png Graphic file (type png)
 <use jacky_part_pic/year.png>
-Package pdftex.def Info: jacky_part_pic/year.png  used on input line 818.
+Package pdftex.def Info: jacky_part_pic/year.png  used on input line 825.
 (pdftex.def)             Requested size: 375.81166pt x 544.92694pt.
 <jacky_part_pic/active.png, id=196, 421.575pt x 611.28375pt>
 File: jacky_part_pic/active.png Graphic file (type png)
 <use jacky_part_pic/active.png>
-Package pdftex.def Info: jacky_part_pic/active.png  used on input line 825.
+Package pdftex.def Info: jacky_part_pic/active.png  used on input line 832.
 (pdftex.def)             Requested size: 375.81166pt x 544.92694pt.
 <predic_plots/b_merge.png, id=197, 1263.72125pt x 780.9175pt>
 File: predic_plots/b_merge.png Graphic file (type png)
 <use predic_plots/b_merge.png>
-Package pdftex.def Info: predic_plots/b_merge.png  used on input line 832.
+Package pdftex.def Info: predic_plots/b_merge.png  used on input line 839.
 (pdftex.def)             Requested size: 375.80266pt x 232.22752pt.
 <predic_plots/a_1_4.png, id=198, 433.62pt x 289.08pt>
 File: predic_plots/a_1_4.png Graphic file (type png)
 <use predic_plots/a_1_4.png>
-Package pdftex.def Info: predic_plots/a_1_4.png  used on input line 839.
+Package pdftex.def Info: predic_plots/a_1_4.png  used on input line 846.
 (pdftex.def)             Requested size: 375.8238pt x 250.5492pt.
 <predic_plots/rmse1.png, id=199, 1263.72125pt x 780.9175pt>
 File: predic_plots/rmse1.png Graphic file (type png)
 <use predic_plots/rmse1.png>
-Package pdftex.def Info: predic_plots/rmse1.png  used on input line 846.
+Package pdftex.def Info: predic_plots/rmse1.png  used on input line 853.
 (pdftex.def)             Requested size: 375.80266pt x 232.22752pt.
 <predic_plots/R_square.png, id=200, 1263.72125pt x 780.9175pt>
 File: predic_plots/R_square.png Graphic file (type png)
 <use predic_plots/R_square.png>
-Package pdftex.def Info: predic_plots/R_square.png  used on input line 853.
+Package pdftex.def Info: predic_plots/R_square.png  used on input line 860.
 (pdftex.def)             Requested size: 375.80266pt x 232.22752pt.
 <predic_plots/rmse_nature.png, id=201, 1263.72125pt x 780.9175pt>
 File: predic_plots/rmse_nature.png Graphic file (type png)
 <use predic_plots/rmse_nature.png>
-Package pdftex.def Info: predic_plots/rmse_nature.png  used on input line 860.
+Package pdftex.def Info: predic_plots/rmse_nature.png  used on input line 867.
 (pdftex.def)             Requested size: 375.80266pt x 232.22752pt.
 <predic_plots/months1.png, id=202, 1263.72125pt x 780.9175pt>
 File: predic_plots/months1.png Graphic file (type png)
 <use predic_plots/months1.png>
-Package pdftex.def Info: predic_plots/months1.png  used on input line 867.
+Package pdftex.def Info: predic_plots/months1.png  used on input line 874.
 (pdftex.def)             Requested size: 375.80266pt x 232.22752pt.
 [10
 
@@ -755,39 +755,39 @@ _Plot.png>] [13 <./jacky_part_pic/year.png>] [14 <./jacky_part_pic/active.png>]
 s/rmse1.png> <./predic_plots/R_square.png>] [17 <./predic_plots/rmse_nature.png
 > <./predic_plots/months1.png>]
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 881.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 887.
 
-Underfull \vbox (badness 10000) detected at line 952
+Underfull \vbox (badness 10000) detected at line 958
  []
 
 [18
 
 ] [19]
-Overfull \hbox (72.87273pt too wide) detected at line 978
+Overfull \hbox (72.87273pt too wide) detected at line 982
 [][]
  []
 
 
-Overfull \hbox (33.58096pt too wide) detected at line 985
+Overfull \hbox (33.58096pt too wide) detected at line 989
 [][]
  []
 
 [20
 
 ]
-Overfull \hbox (21.1717pt too wide) detected at line 1002
+Overfull \hbox (21.1717pt too wide) detected at line 1006
 [][]
  []
 
 [21] (./task5_report.aux) ) 
 Here is how much of TeX's memory you used:
- 15859 strings out of 478268
- 257760 string characters out of 5846347
- 680570 words of memory out of 5000000
+ 15861 strings out of 478268
+ 257792 string characters out of 5846347
+ 680582 words of memory out of 5000000
  33435 multiletter control sequences out of 15000+600000
- 571854 words of font info for 205 fonts, out of 8000000 for 9000
+ 571937 words of font info for 206 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 74i,16n,77p,1009b,436s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 74i,16n,77p,1009b,434s stack positions out of 10000i,1000n,20000p,200000b,200000s
 {/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/
 lm/lm-ec.enc}{/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/lm/lm-mathit.e
 nc}{/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/l
@@ -816,7 +816,7 @@ st/fonts/type1/public/lm/lmsy5.pfb></usr/local/texlive/2022/texmf-dist/fonts/ty
 pe1/public/lm/lmsy7.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/
 lm/lmtk10.pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/lm/lmtt10.
 pfb></usr/local/texlive/2022/texmf-dist/fonts/type1/public/lm/lmtti10.pfb>
-Output written on task5_report.pdf (21 pages, 5180845 bytes).
+Output written on task5_report.pdf (21 pages, 5182239 bytes).
 PDF statistics:
  505 PDF objects out of 1000 (max. 8388607)
  395 compressed objects within 4 object streams
