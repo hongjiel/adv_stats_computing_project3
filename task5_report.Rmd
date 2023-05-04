@@ -213,9 +213,9 @@ By examining the histograms, we primarily focused on the numerical distribution 
 Posterior summaries and 95% credible intervals of $\boldsymbol\gamma$ is shown in table \ref{table:sum} and table \ref{table:ci}. We are mainly interested in answering two questions. Are there seasonal differences in hurricane wind speeds? Is there evidence to support the claim that hurricane wind speeds have been increasing over the years? The convergence of parameter $\gamma_{year}$ and $\gamma_{active}$ is shown in figure \ref{Year} and figure \ref{Active}. The two parameters converged after MCMC, and $\gamma_{active}$ had a better performance on convergence than $\gamma_{year}$. Thus we could answer the two questions using the 95% credible intervals. Since the credible intervals for both parameters contain zero, the conclusion is that there is no seasonal or yearly difference in hurricane wind speeds.
 
 ## Hurricane wind speed prediction
-Given the estimates of parameters $\boldsymbol{\gamma}$ and $\boldsymbol\beta_i$ which is the coefficients associated the $i$th hurricane, the predicted wind speed of the $i$-th hurricane at $t+6$ time stamp, denoted as $\hat{Y}_i(t+6)$ could be computed as:
-$$\hat{Y}_i(t+6) = \mathbf{Z}_i(t)^\top\hat{\boldsymbol\beta}_i  + \mathbf{X}_i^\top \hat{\boldsymbol{\gamma}},$$
-where $\bm{\beta}_i = (\beta_{0,i}, \beta_{1,i}, ..., \beta_{4,i})^\top$, and $\mathbf{Z}_i(t) = (1, \ Y_i(t), \ \Delta_{i,1}(t), \ \Delta_{i,2}(t), \ \Delta_{i,3}(t))^\top$.\par
+Given the estimates of parameters and known variables, the predicted wind speed of the $i$-th hurricane at $t+6$ time stamp, denoted as $\hat{Y}_i(t+6)$ could be computed as:
+$$\hat{Y}_i(t+6) = \hat{\beta}_{0,i} + \hat{\beta}_{1,i}Y_i(t) + \hat{\beta}_{2,i}\Delta_{i,1}(t) + \hat{\beta}_{3,i}\Delta_{i,2}(t) + \hat{\beta}_{4,i}\Delta_{i,3}(t) + \mathbf{X_i}\hat{\gamma}$$
+where $\bm{\hat{\beta_i}} = (\hat{\beta}_{0,i}, \hat{\beta}_{1,i}, \hat{\beta}_{2,i}, \hat{\beta}_{3,i}, \hat{\beta}_{4,i})$ are the estimated random coefficients, $\hat{\gamma}$ is the estimated fixed effect of $\mathbf{X_i}$, and other variables are the same as explained and denoted in Chapter 2.\par
 
 Based on the burn-in number $5000$ as concluded in MCMC parameter convergence diagnostic section, we calculated the parameters to be used to make prediction, and predict the wind speeds of each hurricane at each time stamp, except for the first two time stamps. We computed the RMSE and R-squared of each hurricane, as partly shown in the table \ref{table:summary}. It can be observed that different hurricanes perform variously on RMSE and R-squared. Generally the RMSE for selected hurricanes is around $3$ to $8$, and the R-squared is within $0.7$ to $1.0$. However, there is also extremely low R-squared($0.30$ as shown) and high RMSE($9.64$ as shown).\par
 
@@ -234,7 +234,7 @@ For the parameter $\gamma_{year}$, at first it had a really bad performance on c
 
 ## Prediction latency of wind speed change
 
-It can be observed from the plots that there exists a prediction latency in wind speed on different time points. We suspect that because the model is based on the speed trend from $t-6$ to $t$, thus it tends to continue this trend simulation from $t$ to $t+6$, while $t+6$ may be a complete different situation. Besides, the measurement of wind speed is in unit of $5$ Knot and not that precise, which may also be a reason for inadequate accurate prediction. Further investigation may be needed concerning time series models explanation.
+It can be observed from the plots that there exists a prediction latency towards the changing of wind speed  at different time points. We suspect that because the model is based on the speed trend from $t-6$ to $t$, thus it tends to continue this trend simulation from $t$ to $t+6$, while $t+6$ may be a complete different situation. Besides, the measurement of wind speed is in unit of $5$ Knot and not that precise, which may also be a reason for inadequate accurate prediction. Further investigation may be needed concerning time series models explanation.
 
 \newpage 
 # Group Contributions {-}
@@ -358,45 +358,48 @@ ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
 \begin{figure}[ht] 
   \centering 
   \subfigure[mu]{ 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_parameters_time_series_plot.png} 
+    \includegraphics[width=3.0in, height = 1.8in]{parameters_burnin/Mu_parameters_time_series_plot.png} 
   } 
   \subfigure[Sigma matrix]{ 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_parameters_time_series_plot.png} 
+    \includegraphics[width=3.0in, height = 1.8in]{parameters_burnin/Sigma_parameters_time_series_plot.png}
   } \\
   \subfigure[gamma]{ 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_parameters_time_series_plot.png} 
+    \includegraphics[width=3.0in, height = 1.8in]{parameters_burnin/Gamma_parameters_time_series_plot.png} 
   } 
   \subfigure[sigma]{ 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_parameters_time_series_plot.png} 
+    \includegraphics[width=3.0in, height = 1.8in]{parameters_burnin/igma_parameters_time_series_plot.png} 
   } 
-  \label{trace plot} 
+  \caption{trace plot}
+  \label{trace plot}
 \end{figure}
 
 \begin{figure}[ht] 
   \centering 
   \subfigure[mu]{ 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_ACF_Plot.png} 
+    \includegraphics[width=3.0in, height = 1.8in]{parameters_burnin/Mu_Parameters_ACF_Plot.png} 
   } 
   \subfigure[Sigma matrix]{ 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_ACF_Plot.png} 
+    \includegraphics[width=3.0in, height = 1.8in]{parameters_burnin/Sigma_Parameters_ACF_Plot.png} 
   } \\
   \subfigure[gamma]{ 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_Parameters_ACF_Plot.png} 
+    \includegraphics[width=3.0in, height = 1.8in]{parameters_burnin/Gamma_Parameters_ACF_Plot.png} 
   } 
   \subfigure[sigma]{ 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_Parameters_ACF_Plot.png} 
-  } 
+    \includegraphics[width=3.0in, height = 1.8in]{parameters_burnin/igma_Parameters_ACF_Plot.png} 
+  }
+  \caption{auto plot}
   \label{auto plot} 
 \end{figure}
 
 \begin{figure}[ht] 
   \centering 
   \subfigure[mu]{ 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_Histogram_Plot.png} 
+    \includegraphics[width=3.0in, height = 2.0in]{parameters_burnin/Mu_Parameters_Histogram_Plot.png} 
   } 
   \subfigure[Sigma matrix]{ 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_Histogram_Plot.png} 
+    \includegraphics[width=3.0in, height = 2.0in]{parameters_burnin/Sigma_Parameters_Histogram_Plot.png} 
   } 
+  \caption{historam plot}  
   \label{historam plot} 
 \end{figure}
 

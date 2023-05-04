@@ -412,7 +412,7 @@ for (i in 1:5) {
 ```
 
 ```{r}
-ID_name=as.matrix(Training%>% 
+ID_name=as.matrix(Training %>% 
   group_by(ID) %>% 
   slice(1) %>% dplyr::select(ID))
 
@@ -481,16 +481,15 @@ for (i in 1:5) {
 }
 
 # arrange the plots using grid.arrange
-grid_c = grid.arrange(grobs = plot_list_c[c(1:4)], ncol = 2, nrow=2)
+grid_c = grid.arrange(grobs = plot_list_c[c(1:4)], ncol = 2, nrow = 2)
 
 # extract the legends from each plot
 
 
 # merge the legends into one common legend
-legend = cowplot::get_legend(plot_list_c[[1]]+theme(legend.position="bottom"))
+legend = cowplot::get_legend(plot_list_c[[1]] + theme(legend.position = "bottom"))
 
 # add the common legend to the grid of plots
 plot_grid(grid_c, legend, ncol = 1, rel_heights = c(1, .1))
-
 ```
 
