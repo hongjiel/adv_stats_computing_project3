@@ -160,9 +160,10 @@ distribution.
 # MCMC
 
 ## Methods of MCMC
-To estimate the parameters of the posterior distribution corresponding to the above calculation by collecting samples, we will use the MCMC method. We will apply Gibbs sampling steps to the parameters of the known conditional distribution, and use the Metropolis-Hastings (MH) method for the parameters of the unknown conditional distribution, specifically for $\sigma$. For the other parameters, we will use Gibbs sampling.
+To estimate the parameters of the posterior distribution corresponding to the above calculation by collecting samples, we will use the MCMC method. We will apply Gibbs sampling steps to the parameters of the known conditional distribution, and use the Metropolis-Hastings (MH) method for the parameters of the unknown conditional distribution, specifically for $\sigma$.
 
 Before explaining the algorithm in detail, let's define the hyperparameters:
+
 - $\lambda$ is the acceptance rate of the MH algorithm.
 - $a$ represents the search window used in the MH algorithm.
 - $burnin$ indicates the starting iteration number for collecting samples.
@@ -192,13 +193,13 @@ At the same time we compute the acceptance probability, $\alpha$, as the minimum
 
 \textbf{Specific Value}
 
-The specific value we choose can be seen at table\ref{table:initial}
+The specific value we choose can be seen at table\ref{table:initial}.
 
 ## Parameter convergence diagnostic
 
 Through trace plots, it can be seen that the convergence speed of each parameter is very fast, and after 1000 iterations, all parameters except the intercept of $\mu_0$ have converged with fluctuations, while the others have reached convergence.They are shown in the figure\ref{trace plot}.
 
-It's worth noting that, through continuous effort and data adjustment, while mu_0 did not strictly converge, it has stabilized within a reasonable range, and its convergence has significantly improved compared to before the adjustments were made. For instance, we scaled the variable season(represent year), which stabilized the range of $\mu_0$ and improved the convergence of the it.
+It's worth noting that, through continuous effort and data adjustment, while $\mu_0$ did not strictly converge, it has stabilized within a reasonable range, and its convergence has significantly improved compared to before the adjustments were made. For instance, we scaled the variable season(represent year), which stabilized the range of $\mu_0$ and improved the convergence of the it.
 
 ### Autocorrelation plot
 
