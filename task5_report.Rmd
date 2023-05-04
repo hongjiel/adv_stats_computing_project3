@@ -248,6 +248,46 @@ Zijian Xu worked on analysis of the MCMC algorithm, including reviewing the algo
 # Appendices {-}
 
 ## Figures and Tables {-}
+
+\begin{table}[h]
+    \centering
+    \caption{Initial Value Setting}
+    \label{table:initial}
+    \begin{tabular}{|c|c|}
+        \hline
+        Parameter & Value \\
+        \hline
+        $\boldsymbol{\mu}^\top$ & $(2.91, 0.94, -0.03, -0.24, 0.47)$ \\
+        $\boldsymbol{\gamma}^\top$ & $(-0.01, 0.35, 0.28, 0.37, 0.12, 0.08)$ \\
+        $\boldsymbol{\Sigma}$ & $\begin{pmatrix}
+           0.390 & -0.011 & 0.021 & 0.140 & 0.031 \\
+          -0.011 & 0.001 & -0.002 & -0.005 & 0.000 \\
+           0.021 & -0.002 & 0.034 & 0.026 & -0.019 \\
+           0.140 & -0.005 & 0.026 & 0.074 & 0.003 \\
+           0.031 & 0.000 & -0.019 & 0.003 & 0.018 \\
+        \end{pmatrix}$ \\
+        $\sigma$ & 5.27 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+\caption{Summary statistics for mu}
+\label{table:mu Ci}
+\begin{tabular}{lccc}
+\hline
+Parameter & mu\_mean\ &   lower bound &   upper bound \\ \hline
+mu\_0     & 4.5091968     & 3.8894989     & 5.0617140     \\
+mu\_1     & 0.9040681     & 0.8397420     & 0.9679912     \\
+mu\_2     & -0.0488009    & -0.2472724    & 0.1533209     \\
+mu\_3     & -0.4617278    & -0.5988835    & -0.3236038    \\
+mu\_4     & 0.4714829     & 0.3978996     & 0.5459744     \\ \hline
+\end{tabular}
+\end{table}
+
+
 \begin{table}[h]
 \centering
 \small
@@ -308,43 +348,51 @@ ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
 \end{tabular}
 \end{table}
 
-\begin{table}[h]
-    \centering
-    \caption{Initial Value Setting}
-    \label{table:initial}
-    \begin{tabular}{|c|c|}
-        \hline
-        Parameter & Value \\
-        \hline
-        $\boldsymbol{\mu}^\top$ & $(2.91, 0.94, -0.03, -0.24, 0.47)$ \\
-        $\boldsymbol{\gamma}^\top$ & $(-0.01, 0.35, 0.28, 0.37, 0.12, 0.08)$ \\
-        $\boldsymbol{\Sigma}$ & $\begin{pmatrix}
-           0.390 & -0.011 & 0.021 & 0.140 & 0.031 \\
-          -0.011 & 0.001 & -0.002 & -0.005 & 0.000 \\
-           0.021 & -0.002 & 0.034 & 0.026 & -0.019 \\
-           0.140 & -0.005 & 0.026 & 0.074 & 0.003 \\
-           0.031 & 0.000 & -0.019 & 0.003 & 0.018 \\
-        \end{pmatrix}$ \\
-        $\sigma$ & 5.27 \\
-        \hline
-    \end{tabular}
-\end{table}
+\begin{figure}[ht] 
+  \centering 
+  \subfigure[mu]{ 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_parameters_time_series_plot.png} 
+  } 
+  \subfigure[Sigma matrix]{ 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_parameters_time_series_plot.png} 
+  } \\
+  \subfigure[gamma]{ 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_parameters_time_series_plot.png} 
+  } 
+  \subfigure[sigma]{ 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_parameters_time_series_plot.png} 
+  } 
+  \label{trace plot} 
+\end{figure}
 
+\begin{figure}[ht] 
+  \centering 
+  \subfigure[mu]{ 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_ACF_Plot.png} 
+  } 
+  \subfigure[Sigma matrix]{ 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_ACF_Plot.png} 
+  } \\
+  \subfigure[gamma]{ 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_Parameters_ACF_Plot.png} 
+  } 
+  \subfigure[sigma]{ 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_Parameters_ACF_Plot.png} 
+  } 
+  \label{auto plot} 
+\end{figure}
 
-\begin{table}[h]
-\centering
-\caption{Summary statistics for mu}
-\label{table:mu Ci}
-\begin{tabular}{lccc}
-\hline
-Parameter & mu\_mean\ &   lower bound &   upper bound \\ \hline
-mu\_0     & 4.5091968     & 3.8894989     & 5.0617140     \\
-mu\_1     & 0.9040681     & 0.8397420     & 0.9679912     \\
-mu\_2     & -0.0488009    & -0.2472724    & 0.1533209     \\
-mu\_3     & -0.4617278    & -0.5988835    & -0.3236038    \\
-mu\_4     & 0.4714829     & 0.3978996     & 0.5459744     \\ \hline
-\end{tabular}
-\end{table}
+\begin{figure}[ht] 
+  \centering 
+  \subfigure[mu]{ 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_Histogram_Plot.png} 
+  } 
+  \subfigure[Sigma matrix]{ 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_Histogram_Plot.png} 
+  } 
+  \label{historam plot} 
+\end{figure}
+
 
 \begin{figure}[ht]
   \centering
@@ -402,60 +450,6 @@ mu\_4     & 0.4714829     & 0.3978996     & 0.5459744     \\ \hline
   \label{RMSE under different months}
 \end{figure}
 
-\begin{figure} 
-  \centering 
-  \subfigure[mu]{ 
-    \label{sub1}
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_parameters_time_series_plot.png} 
-  } 
-  \subfigure[Sigma matrix]{ 
-    \label{sub2} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_parameters_time_series_plot.png} 
-  } \\
-  \subfigure[gamma]{ 
-    \label{sub3} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_parameters_time_series_plot.png} 
-  } 
-  \subfigure[sigma]{ 
-    \label{sub4} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_parameters_time_series_plot.png} 
-  } 
-  \label{trace plot} 
-\end{figure}
-
-\begin{figure} 
-  \centering 
-  \subfigure[mu]{ 
-    \label{sub1}
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_ACF_Plot.png} 
-  } 
-  \subfigure[Sigma matrix]{ 
-    \label{sub2} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_ACF_Plot.png} 
-  } \\
-  \subfigure[gamma]{ 
-    \label{sub3} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_Parameters_ACF_Plot.png} 
-  } 
-  \subfigure[sigma]{ 
-    \label{sub4} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_Parameters_ACF_Plot.png} 
-  } 
-  \label{auto plot} 
-\end{figure}
-
-\begin{figure} 
-  \centering 
-  \subfigure[mu]{ 
-    \label{sub1}
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_Histogram_Plot.png} 
-  } 
-  \subfigure[Sigma matrix]{ 
-    \label{sub2} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_Histogram_Plot.png} 
-  } 
-  \label{historam plot} 
-\end{figure}
 
 \clearpage
 
