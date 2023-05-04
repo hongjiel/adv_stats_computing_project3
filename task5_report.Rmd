@@ -1,7 +1,7 @@
 ---
 title: "P8160 Report - Bayesian Modeling of Hurricane Trajectories"
 author: "Hongjie Liu, Xicheng Xie, Jiajun Tao, Zijian Xu, Shaohan Chen"
-date: "5/1/2023"
+date: "5/4/2023"
 output:
   pdf_document:
     number_sections: true
@@ -31,7 +31,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
 ```
 
-\newpage 
+\newpage
 # Introduction
 ## Background
 A hurricane is a powerful tropical storm characterized by high winds, heavy rain, storm surges, and flooding. Hurricanes are also known as cyclones or typhoons, depending on the region where they occur.
@@ -78,7 +78,7 @@ First we need to pre-process the data. We only kept observations that occurred o
 Let $Y_{i}(t)$ denote the wind speed of the $i$th hurricane at time $t$ (in hours) since the hurricane began. We propose a Bayesian model to characterize the wind speed of the $i$th hurricane 6 hours later as follows:
 $$Y_{i}(t+6) =\beta_{0,i}+\beta_{1,i}Y_{i}(t) + \beta_{2,i}\Delta_{i,1}(t)+
 \beta_{3,i}\Delta_{i,2}(t) +\beta_{4,i}\Delta_{i,3}(t) + \mathbf{X}_i^\top\boldsymbol\gamma+ \epsilon_{i}(t),$$
-where $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ are the changes of latitude, longitude and wind speed between $t-6$ and $t$, $\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{4,i})^\top$ are the random coefficients, and $\mathbf{X}_i = (x_{i,1},\ldots,x_{i,6})^\top$ are covariates with fixed effects $\boldsymbol\gamma$. Here, $x_{i,1}$ is the calendar year of the $i$-th hurricane measured with respect to 1950 (with values 0 to 63), $x_{i,2}$ is the indicator variable of the month in active season (August-October) when the $i$-th hurricane started, and $x_{i,3},\ldots,x_{i,6}$ are indicator variables of the four types (ES, NR, SS, and TS) of the $i$-th hurricane when it began. We assume that the error term $\epsilon_{i}(t)\sim N(0,\sigma^2)$ and is independent across $t$.
+where $\Delta_{i,1}(t)$, $\Delta_{i,2}(t)$ and $\Delta_{i,3}(t)$ are the changes of latitude, longitude and wind speed between $t-6$ and $t$, $\boldsymbol{\beta}_{i} = (\beta_{0,i},\beta_{1,i},...,\beta_{4,i})^\top$ are the random coefficients, and $\mathbf{X}_i = (x_{i,1},\ldots,x_{i,6})^\top$ are covariates with fixed effects $\boldsymbol\gamma$. Here, $x_{i,1}$ is the calendar year of the $i$-th hurricane measured with respect to 1950 (with values 0 to 63), $x_{i,2}$ is the indicator variable of the month in active season (August-October) when the $i$-th hurricane started, and $x_{i,3},\ldots,x_{i,6}$ are indicator variables of the four types (ET, NR, SS, and TS) of the $i$-th hurricane when it began. We assume that the error term $\epsilon_{i}(t)\sim N(0,\sigma^2)$ and is independent across $t$.
 
 ## Prior Distribution for Each Parameter
 
@@ -217,7 +217,7 @@ Given the estimates of parameters $\boldsymbol{\gamma}$ and $\boldsymbol\beta_i$
 $$\hat{Y}_i(t+6) = \mathbf{Z}_i(t)^\top\hat{\boldsymbol\beta}_i  + \mathbf{X}_i^\top \hat{\boldsymbol{\gamma}},$$
 where $\bm{\beta}_i = (\beta_{0,i}, \beta_{1,i}, ..., \beta_{4,i})^\top$, and $\mathbf{Z}_i(t) = (1, \ Y_i(t), \ \Delta_{i,1}(t), \ \Delta_{i,2}(t), \ \Delta_{i,3}(t))^\top$.\par
 
-Based on the burn-in number $8000$ as concluded in MCMC parameter convergence diagnostic section, we calculated the parameters to be used to make prediction, and predict the wind speeds of each hurricane at each time stamp, except for the first two time stamps. We computed the RMSE and R-squared of each hurricane, as partly shown in the table \ref{table:summary}. It can be observed that different hurricanes perform variously on RMSE and R-squared. Generally the RMSE for selected hurricanes is around $3$ to $8$, and the R-squared is within $0.7$ to $1.0$. However, there is also extremely low R-squared($0.30$ as shown) and high RMSE($9.64$ as shown).\par
+Based on the burn-in number $5000$ as concluded in MCMC parameter convergence diagnostic section, we calculated the parameters to be used to make prediction, and predict the wind speeds of each hurricane at each time stamp, except for the first two time stamps. We computed the RMSE and R-squared of each hurricane, as partly shown in the table \ref{table:summary}. It can be observed that different hurricanes perform variously on RMSE and R-squared. Generally the RMSE for selected hurricanes is around $3$ to $8$, and the R-squared is within $0.7$ to $1.0$. However, there is also extremely low R-squared($0.30$ as shown) and high RMSE($9.64$ as shown).\par
 
 The prediction performance on several chosen example hurricanes is shown in figure \ref{Time series prediction plot} and figure \ref{Prediction vs. observation}. As shown in figure \ref{Time series prediction plot}, the predicted wind speed overall nicely fit the observed wind speed at each time index of those hurricanes, though performance is better on example hurricane 'ABLE.1951' than other examples. According to figure \ref{Prediction vs. observation}, the prediction and observation data points fit well as a linear line with slope $=1$. Digging deeper, the Bayesian model performs much better when the wind speed is stable, but worse when there exits some fluctuations of wind speed. More specifically, the Bayesian model's prediction has a latency in responding to the fluctuation of observed wind speed, and the changing of predicted speed is generally one unit time index behind observed speed.\par
 
@@ -227,6 +227,7 @@ Furthermore, we examined the distribution of RMSE across various properties of h
 
 
 # Discussion
+
 ## MCMC parameters convergence problem
 
 For the parameter $\gamma_{year}$, at first it had a really bad performance on convergence because we used the origin data of year i.e. 1950-2013. After presentation, thanks to the advice given by Professor Ying Wei, we tried to scale the data to 0-63 since one-year change had little effect on the original year. The convergence then seems pretty good after the adjustment. This may give us a lesson that we should try to scale some of the data if any parameter does not converge through MCMC.
@@ -235,7 +236,11 @@ For the parameter $\gamma_{year}$, at first it had a really bad performance on c
 
 It can be observed from the plots that there exists a prediction latency in wind speed on different time points. We suspect that because the model is based on the speed trend from $t-6$ to $t$, thus it tends to continue this trend simulation from $t$ to $t+6$, while $t+6$ may be a complete different situation. Besides, the measurement of wind speed is in unit of $5$ Knot and not that precise, which may also be a reason for inadequate accurate prediction. Further investigation may be needed concerning time series models explanation.
 
+\newpage 
 # Group Contributions {-}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[R]{\thepage}
 
 Hongjie Liu worked on mathematical derivations and implementing the MCMC algorithm in R. Additionally, he was responsible for writing section 2 of the report and delivering the presentation for task 1. I am grateful to my teammates for their thorough review of my mathematical derivations and R functions. Special thanks to Zijian, who also developed his own set of R functions for the MCMC algorithm and reviewed mine. I would also like to express my gratitude to Shaohan for identifying a critical error in my R function.
 
@@ -247,12 +252,10 @@ Shaohan Chen worked on revising MCMC R functions, predicting wind speed for each
 
 Zijian Xu worked on analysis of the MCMC algorithm, including reviewing the algorithm, writing functions to check for errors, visualizing results, conducting diagnostic analysis, and evaluating and improving starting values. Additionally, I wrote the front part of section 3 of the report, which focused on the MCMC algorithm, and contributed to delivering the presentation for task 2.I would like to express my utmost gratitude to my team members who were always available and willing to contribute their efforts to the project.I would like to say that my teammates are humble. In reality, a lot of our work cannot be quantified, and in my opinion, the amount of work we have accomplished is tremendous. For example, writing the report entirely in LaTeX formulas, ensuring the report was well-organized and complete, and continuously formatting and adjusting it. Moreover, each team member had to adjust their sections after every change in the project's direction, which shows that every member was indispensable to the project's success. The project is a result of everyone's hard work and dedication.
 
-\clearpage
+\newpage
 
 # Appendices {-}
-
-## Figures and Tables
-
+## Figures and Tables {-}
 \begin{table}[h]
     \centering
     \caption{Initial Value Setting}
@@ -278,16 +281,16 @@ Zijian Xu worked on analysis of the MCMC algorithm, including reviewing the algo
 
 \begin{table}[h]
 \centering
-\caption{Summary statistics for mu}
+\caption{Summary statistics for $\boldsymbol\mu$}
 \label{table:mu Ci}
 \begin{tabular}{lccc}
 \hline
 Parameter & mu\_mean\ &   lower bound &   upper bound \\ \hline
-mu\_0     & 4.5091968     & 3.8894989     & 5.0617140     \\
-mu\_1     & 0.9040681     & 0.8397420     & 0.9679912     \\
-mu\_2     & -0.0488009    & -0.2472724    & 0.1533209     \\
-mu\_3     & -0.4617278    & -0.5988835    & -0.3236038    \\
-mu\_4     & 0.4714829     & 0.3978996     & 0.5459744     \\ \hline
+$\mu_0$     & 4.5091968     & 3.8894989     & 5.0617140     \\
+$\mu_1$     & 0.9040681     & 0.8397420     & 0.9679912     \\
+$\mu_2$     & -0.0488009    & -0.2472724    & 0.1533209     \\
+$\mu_3$     & -0.4617278    & -0.5988835    & -0.3236038    \\
+$\mu_4$     & 0.4714829     & 0.3978996     & 0.5459744     \\ \hline
 \end{tabular}
 \end{table}
 
@@ -457,7 +460,7 @@ ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
 
 \clearpage
 
-## R Code
+## R Code {-}
 
 ```{r eval=FALSE}
 # Gibbs sampling for B
@@ -540,7 +543,8 @@ algorithm consisting of Gibbs steps and Metropolis-Hastings steps}
 
 \clearpage
 
-## Derivation of Conditional Posterior Distribution for Each Parameter
+## Derivation of Conditional Posterior Distribution for Each Parameter {-}
+
 1. $\mathbf{B}$:
 $$\begin{aligned}
 &\ \pi(\boldsymbol\beta_i\mid \boldsymbol{\mu}^\top,\boldsymbol{\Sigma},\boldsymbol\gamma^\top,\sigma,\mathbf{Y}^\top)\\
