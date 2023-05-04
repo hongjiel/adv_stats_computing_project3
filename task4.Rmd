@@ -112,7 +112,7 @@ Speed_Prediction = function(beta, gamma, burn_bindex, burn_times){
   # final parameters to be used
   # the rows of beta_sample means the last 5000, 4000, 3000, 2000 and 1000
   # burn in the MC chains. change this based on the resulting plots
-  # if burn-in is set to 8000, then we set burn_bindex as 4 to pick the 4th row of beta_sample
+  # if burn-in is set to 5000, then we set burn_bindex as 1 to pick the 4th row of beta_sample
   # index is the useful samples (used for estimates & CIs)
   para_beta = beta[burn_bindex,]
   para_beta = as.matrix(para_beta)
@@ -151,7 +151,7 @@ Speed_Prediction = function(beta, gamma, burn_bindex, burn_times){
 
 
 ```{r}
-Y_table_set = Speed_Prediction(beta = beta_list, gamma = gamma_list, burn_bindex = 4, burn_times = 8000)
+Y_table_set = Speed_Prediction(beta = beta_list, gamma = gamma_list, burn_bindex = 1, burn_times = 5000)
 
 Visual_Table = function(Y_table_input){
   Y_table = Y_table_input

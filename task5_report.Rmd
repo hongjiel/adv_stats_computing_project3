@@ -323,6 +323,8 @@ Hongjie Liu worked on mathematical derivations and implementing the MCMC algorit
 
 Jiajun Tao worked on posterior summaries, credible intervals, and diagnostics of $\gamma$, and was also responsible for the corresponding part of the presentation and the report. Here I would like to express my appreciation to my teammates. I had a great experience in working on this project. The hardest part should be the derivation and the algorithm of MCMC, they really did a great job. Nice to work with those guys!
 
+Shaohan Chen worked on revising MCMC R functions, predicting wind speed for each time point of different hurricanes, and evaluating the estimation performance. Meanwhile, he was also responsible for the corresponding part of the presentation slide and report. Many thanks to my nice teammates who were more than excellent in doing their jobs, especially the impressive math calculations and MCMC algorithm implementation done by Hongjie and Zijian. Special thanks to Xicheng, who helped deliver the "task 4" presentation for me, when I was still in recovery of my left foot wound and unable to attend our presentation in person. Lastly, I would like to give the best credit to our team again for everybody's great contribution and devotion to the class and projects. Looking forward to our next cooperation.
+
 \clearpage
 
 # Appendices {-}
