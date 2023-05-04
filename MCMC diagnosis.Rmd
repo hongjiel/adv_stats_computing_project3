@@ -1,0 +1,623 @@
+---
+title: "MCMC"
+output: 
+    pdf_document
+---
+
+```{r include=FALSE, echo=FALSE}
+library(MASS)
+library(tidyverse)
+library(nlme)
+library(lme4)
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+library(knitr)
+```
+
+### Data preprocessing (same as EDA)
+
+```{r}
+origin_df <- read.csv("hurrican703.csv")
+
+hurricane_df <- origin_df %>% 
+  mutate(
+    Active = ifelse(Month %in% month.name[8:10], "Active", "Inactive"),
+    Active = factor(Active, levels = c("Inactive", "Active")),
+    Month = factor(Month, levels = month.name[-c(2:3)]), # April-January (January ref, may choose another)
+    Nature = as.factor(Nature), # TS,ET,DS,SS,NR (DS ref, may choose another)
+    # note: one hurricane can have multiple natures throughout its life
+    time = gsub("[()]", "", time),
+    time = paste0(ifelse(substr(time, 1, 2) > 23, "19", "20"), time),
+    time = as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S"),
+    hour = substr(time, 12, 19)
+  ) %>% 
+  # remove data not at six-hour time intervals. (613 observations)
+  filter(hour %in% c("00:00:00", "06:00:00", "12:00:00", "18:00:00")) %>% 
+  dplyr::select(-hour)
+
+# remove hurricanes that has only 2 (<3) observations (change the threshold if you wish)
+few_id <- hurricane_df %>% 
+  group_by(ID) %>% 
+  summarize(obs = n()) %>% 
+  filter(obs < 3) %>% 
+  .$ID
+hurricane_df <- hurricane_df %>% filter(!(ID %in% few_id)) # remove 3 hurricanes
+
+# manually correct hurricanes that have same names but are actually different
+hurricane_df <- 
+  hurricane_df %>% 
+  mutate(
+    # 2 hurricanes with the name ALICE.1954
+    ID = ifelse(ID == "ALICE.1954" & Month == "June", "ALICE.1954(1)", ID),
+    ID = ifelse(ID == "ALICE.1954", "ALICE.1954(2)", ID),
+    # 4 hurricanes with the name SUBTROP:UNNAMED.1974
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "June", "SUBTROP:UNNAMED.1974(1)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "July", "SUBTROP:UNNAMED.1974(2)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974" & Month == "August", "SUBTROP:UNNAMED.1974(3)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1974", "SUBTROP:UNNAMED.1974(4)", ID),
+    # 2 hurricanes with the name SUBTROP:UNNAMED.1976
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1976" & Month == "May", "SUBTROP:UNNAMED.1976(1)", ID),
+    ID = ifelse(ID == "SUBTROP:UNNAMED.1976", "SUBTROP:UNNAMED.1976(2)", ID)
+  ) %>% 
+  mutate(Season = Season - 1950) # scale the year
+```
+
+### Data partition (may be useless.)
+
+```{r}
+# data partition, no need to partition data
+Training <- hurricane_df
+```
+
+### Create $\mathbf{X}$, $\mathbf{Y}$, $\mathbf{Z}$ and $\boldsymbol{m}=(m_i)$ in R
+
+```{r}
+n <- length(unique(Training$ID))
+
+Y <- split(Training$Wind.kt, Training$ID) %>% 
+  lapply(function(x) x[-c(1:2)])
+
+X <- Training %>% 
+  group_by(ID) %>% 
+  slice(1) %>% 
+  dplyr::select(ID, Season, Active, Nature) %>% 
+  ungroup(ID)
+X <- model.matrix(~., X[-1])[,-1]
+
+Z <- Training %>% 
+  group_by(ID) %>% 
+  mutate(
+    intercept = 1,
+    wind_pre = lag(Wind.kt),
+    lat_diff = lag(Latitude) - lag(Latitude, 2),
+    long_diff = lag(Longitude) - lag(Longitude, 2),
+    wind_diff = lag(Wind.kt) - lag(Wind.kt, 2),
+  ) %>% 
+  drop_na %>% 
+  dplyr::select(ID, intercept, wind_pre, lat_diff, long_diff, wind_diff)
+Z <- split(Z[, names(Z)[-1]], Z$ID) %>% 
+  lapply(as.matrix)
+
+m <- Training %>% 
+  group_by(ID) %>% 
+  summarize(obs = n() - 2) %>% 
+  .$obs
+```
+
+### MCMC
+
+```{r}
+B_sample <- function(mu, Sigma, gamma, sigma) {
+  Sigma.inv <- solve(Sigma)
+  B_mean_cov <- function(i) {
+    cov <- solve(Sigma.inv + 1/sigma^2 * t(Z[[i]]) %*% Z[[i]])
+    mean <- cov %*% (Sigma.inv %*% mu + 1/sigma^2 * colSums((Y[[i]] - (X[i,] %*% gamma)[,]) * Z[[i]]))
+    list(mean = mean, cov = cov)
+  }
+  mean_cov_list <- lapply(1:n, B_mean_cov)
+  B <- sapply(mean_cov_list, function(x) {mvrnorm(mu = x$mean, Sigma = x$cov)})
+  return(B)
+}
+
+mu_sample <- function(B, Sigma) {
+  cov <- V %*% solve(n*V + Sigma)
+  mean <- cov %*% rowSums(B)
+  mu <- mvrnorm(mu = mean, Sigma = cov)
+  return(mu)
+}
+
+Sigma_sample <- function(B, mu) {
+  Sigma.inv <- rWishart(n = 1, Sigma = solve(S + (B - mu) %*% t(B - mu)), df = n + nu)[,,]
+  Sigma <- solve(Sigma.inv)
+  return(Sigma)
+}
+
+gamma_sample <- function(B, sigma) {
+  X_trans <- sqrt(m) * X
+  cov <- solve(400*diag(6) + 1/sigma^2 * t(X_trans) %*% X_trans)
+  total <- rowSums(sapply(1:n, function(i) sum(Z[[i]] %*% B[,i] - Y[[i]]) * X[i,]))
+  mean <- cov %*% (-1/sigma^2 * total)
+  gamma <- mvrnorm(mu = mean, Sigma = cov)
+  return(gamma)
+}
+
+# MH algorithm (random walk)
+sigma_sample <- function(sigma, B, gamma, a) {
+  sigma_new <- sigma + (runif(1) - 0.5) * 2 * a # candidate sigma
+  if (sigma_new <= 0) {
+    return(sigma)
+  }
+  RSS <- sum(sapply(1:n, function(i) sum((Y[[i]] - Z[[i]] %*% B[,i] - (X[i,] %*% gamma)[,])^2)))
+  log_kernal_ratio <- -sum(m) * log(sigma_new/sigma) +
+    log(1 + (sigma/10)^2) - log(1 + (sigma_new/10)^2) -
+    0.5 * (1/sigma_new^2 - 1/sigma^2) * RSS
+  log_prob <- min(0, log_kernal_ratio)
+  sigma <- ifelse(log_prob > log(runif(1)), sigma_new, sigma)
+  return(sigma)
+}
+
+MCMC <- function(B0, mu0, Sigma0, gamma0, sigma0, a, iter) {
+  B <- B0
+  mu <- mu0
+  Sigma <- Sigma0
+  gamma <- gamma0
+  sigma <- sigma0
+  res <- vector("list", iter)
+  for (i in 1:iter) {
+    B <- B_sample(mu, Sigma, gamma, sigma)
+    mu <- mu_sample(B, Sigma)
+    Sigma <- Sigma_sample(B, mu)
+    gamma <- gamma_sample(B, sigma)
+    sigma <- sigma_sample(sigma, B, gamma, a)
+    res[[i]] <- list(B = B, mu = mu, Sigma = Sigma, gamma = gamma, sigma = sigma)
+  }
+  return(res)
+}
+```
+
+### Fit lmm model to select starting values
+
+```{r}
+df <- hurricane_df %>% 
+  group_by(ID) %>% 
+  mutate(
+    Season = first(Season),
+    Active = first(Active),
+    Nature = first(Nature),
+    wind_pre = lag(Wind.kt),
+    lat_diff = lag(Latitude) - lag(Latitude, 2),
+    long_diff = lag(Longitude) - lag(Longitude, 2),
+    wind_diff = lag(Wind.kt) - lag(Wind.kt, 2),
+  ) %>% 
+  drop_na %>% 
+  dplyr::select(ID, Wind.kt, Season, Active, Nature, wind_pre, lat_diff, long_diff, wind_diff)
+
+lmm <- lmer(Wind.kt ~ Season + Active + Nature + wind_pre + lat_diff + long_diff + wind_diff +
+            (1 + wind_pre + lat_diff + long_diff + wind_diff | ID),
+            data = df)
+summary(lmm)
+
+mu0 <- as.vector(fixed.effects(lmm)[-c(2:7)])
+gamma0 <- as.vector(fixed.effects(lmm)[2:7])
+n <- length(unique(df$ID))
+B0 <- matrix(rep(mu0, n), nrow = 5)
+B0 <- B0 + t(as.matrix(random.effects(lmm)$ID))
+sigma0 <- sd(residuals(lmm))
+Sigma0 <- as.matrix(Matrix::bdiag(VarCorr(lmm))) + diag(5)*0.001 # computationally singular
+Sigma00=round(Sigma0, digits = 3)
+```
+
+### Apply MCMC on training data
+
+1. Please select appropriate $\boldsymbol V$ and $\boldsymbol S$ values.
+2. Please select appropriate starting values for parameters, especially $\mathbf{B}$.
+3. You can save the results `xxx_list` as csv files or otherwise. Note that we need to find the answers to the above 2 problems and also the following questions to make sure that we won't make any updates for these saved data:
+
+* Should we apply MCMC on training hurricanes or all hurricanes? (in other words, should we partition the data into training and test data?) This relies on whether we hope to make predictions only on test hurricanes or on hurricanes used for MCMC.
+* Given that samples of $\mathbf{B}$ is a 10000*2815 matrix, and we only use $\mathbf{B}$ for predictions on hurricanes used for MCMC, we can decide which hurricanes we are gonna predict (e.g., hurricanes having appropriate number of observations, famous hurricanes, hurricanes of different natures, years, months), and only save the samples of corresponding $\boldsymbol\beta_i$'s.
+* We need to run the MCMC function and save the results (`xxx_list`) after we solve the above 3 problems. Then we need to check whether the `a` in the random walk for sampling $\sigma$ is appropriate. (acceptance rate 30% - 60%, see far below) If not, we need to change `a` and regenerate the results.
+
+estimated running time: 10 mins for 10,000 iterations
+
+```{r}
+# constants
+nu <- 5 # suggested
+V <- diag(5) # can try other. see requirement
+S <- diag(5) # can try other. see requirement
+
+set.seed(1)
+res <- MCMC(B0, mu0, Sigma0, gamma0, sigma0, a = 0.1, iter = 10000) # try larger values
+
+# B. beta_i_j: i: ith hurricane, j: 1-5
+B_list <- t(mapply(function(x) x$B, res))
+B_names <- apply(expand.grid(0:4, 1:n), 1,
+                 function(x) paste("beta", x[2], x[1], sep = "_"))
+colnames(B_list) <- B_names
+# mu
+mu_list <- t(mapply(function(x) x$mu, res))
+colnames(mu_list) <- colnames(Z[[1]])
+# Sigma (symmetric)
+Sigma_list <- t(mapply(function(x) x$Sigma, res))
+Sigma_names <- apply(expand.grid(1:5, 1:5), 1,
+                     function(x) paste("Sigma_", x[2], x[1], sep = ""))
+colnames(Sigma_list) <- Sigma_names
+# gamma (month ref: January, nature ref: DS)
+gamma_list <- t(mapply(function(x) x$gamma, res))
+# sigma
+sigma_list <- mapply(function(x) x$sigma, res)
+
+
+B_mean = bind_rows(colSums(B_list[5001:10000,])/5000, colSums(B_list[6001:10000,])/4000,
+                  colSums(B_list[7001:10000,])/3000, colSums(B_list[8001:10000,])/2000,
+                  colSums(B_list[9001:10000,])/1000)
+write.csv(B_mean, file = "./data/B_list_lastmean.csv", row.names = FALSE) # last 5000 obs
+write.csv(mu_list, file = "./data/mu_list.csv", row.names = FALSE)
+write.csv(Sigma_list, file = "./data/Sigma_matrix_list.csv", row.names = FALSE)
+write.csv(gamma_list, file = "./data/gamma_list.csv", row.names = FALSE)
+write.csv(sigma_list, file = "./data/sigma_list.csv", row.names = FALSE)
+```
+
+
+#### Select burning time
+```{r}
+n_burnin=5000
+```
+
+```{r}
+beta_list <- read.csv("./data/B_list_lastmean.csv")
+mu_list <- read.csv("./data/mu_list.csv")
+Sigma_list <- read.csv("./data/Sigma_matrix_list.csv")
+gamma_list <- read.csv("./data/gamma_list.csv")
+sigma_list <- read.csv("./data/sigma_list.csv")$x
+```
+
+### trace plot
+#### Mu
+```{r}
+# Create the folder
+dir.create(file.path("parameters_burnin", "mu"), showWarnings = FALSE)
+
+# Create a list to store the plots
+plots <- list()
+
+# Loop through the columns of mu_list
+for (i in 1:ncol(mu_list)) {
+  # Create a plot and add it to the list
+  p <- ggplot(data = data.frame(y = mu_list[1:nrow(Sigma_list), i])) +
+    geom_line(aes(x = 1:length(y), y = y)) +
+    xlab("") +
+    ylab(paste0("Mu ", i)) +
+    theme_bw()+
+    geom_vline(xintercept = n_burnin, linetype = "dashed", color = "red")
+   plots[[i]] <- p
+  
+  # Save the plot as a PNG file
+  filename <- file.path("parameters_burnin", "mu", paste0("parameter_", i, ".png"))
+  ggsave(filename, plot = p, width = 8, height = 6)
+}
+
+# Merge the plots into a single plot
+merged_plot <- plot_grid(plotlist = plots, ncol = 1)
+
+# Add a title to the merged plot
+title <- ggdraw() + draw_label("Time Series Plot of Mu", fontface = "bold", size = 14) + theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+# Combine the title and the plot
+final_plot <- plot_grid(title, merged_plot, ncol = 1, align = "v", axis = "tb", rel_heights = c(0.1, 0.9))
+
+# Save the merged plot as a PNG file
+ggsave(file.path("parameters_burnin", "Mu_parameters_time_series_plot.png"), plot = final_plot, width = 12, height = 8)
+```
+
+# Sigma
+```{r}
+# Create the folder
+dir.create(file.path("parameters_burnin", "Sigma"), showWarnings = FALSE)
+
+# Create a list to store the plots
+plots <- list()
+
+# Loop through the columns of Sigma_list
+for (i in 1:ncol(Sigma_list)) {
+  # Create a plot and add it to the list
+  p <- ggplot(data = data.frame(y = Sigma_list[1:nrow(Sigma_list), i])) +
+    geom_line(aes(x = 1:length(y), y = y)) +
+    xlab("") +
+    ylab(paste0("Sigma_", floor((i-1)/5), "_", (i-1)%%5)) +
+    theme_bw()+
+    geom_vline(xintercept = n_burnin, linetype = "dashed", color = "red")
+  plots[[i]] <- p
+  
+  # Save the plot as a PNG file
+  filename <- file.path("parameters_burnin", "Sigma", paste0("parameter_", floor(i/5), "_", i%%5, ".png"))
+  ggsave(filename, plot = p, width = 8, height = 6)
+}
+
+# Merge the plots into a single plot
+merged_plot <- plot_grid(plotlist = plots, ncol = 5)
+
+# Add a title to the merged plot
+title <- ggdraw() + draw_label("Time Series Plot of Sigma", fontface = "bold", size = 14) + theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+# Combine the title and the plot
+final_plot <- plot_grid(title, merged_plot, ncol = 1, align = "v", axis = "tb", rel_heights = c(0.1, 0.9))
+
+# Save the merged plot as a PNG file
+ggsave(file.path("parameters_burnin", "Sigma_parameters_time_series_plot.png"), plot = final_plot, width = 12, height = 8)
+```
+
+
+#### Gamma
+
+```{r}
+# Create the folder
+dir.create(file.path("parameters_burnin", "gamma gride"), showWarnings = FALSE)
+
+# Create a list to store the plots
+plots <- list()
+
+# Loop through the columns of gamma_list
+for (i in 1:ncol(gamma_list)) {
+  # Create a plot and add it to the list
+  p <- ggplot(data = data.frame(y = gamma_list[1:nrow(Sigma_list), i])) +
+    geom_line(aes(x = 1:length(y), y = y)) +
+    xlab("") +
+    ylab(paste0("Gamma", i)) +
+    theme_bw()+
+    geom_vline(xintercept = n_burnin, linetype = "dashed", color = "red")
+  plots[[i]] <- p
+  # Save the plot as a PNG file
+  filename <- file.path("parameters_burnin", "gamma", paste0("parameter_", i, ".png"))
+  ggsave(filename, plot = p, width = 8, height = 6)
+}
+
+# Merge the plots into a single plot
+merged_plot <- grid.arrange(grobs = plots, ncol = 2)
+
+# Add a title to the merged plot
+title <- ggdraw() + draw_label("Time Series Plot of Gamma", fontface = "bold", size = 14) + theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+# Combine the title and the plot
+final_plot <- plot_grid(title, merged_plot, ncol = 1, align = "v", axis = "tb", rel_heights = c(0.1, 0.9))
+
+# Save the merged plot as a PNG file
+ggsave(file.path("parameters_burnin", "Gamma_parameters_time_series_plot.png"), plot = final_plot, width = 12, height = 8)
+
+```
+
+
+#### Visualization for sigma
+```{r}
+ggplot(data = data.frame(sigma = sigma_list[1:length(sigma_list)]), aes(x = 1:length(sigma), y = sigma)) +
+  geom_line() +
+  xlab("") +
+  ylab("sigma") +
+  theme_bw() +
+  geom_vline(xintercept = n_burnin, linetype = "dashed", color = "red")
+ggsave(file.path("parameters_burnin","igma_parameters_time_series_plot.png"), width = 8, height = 6, dpi = 300)
+```
+
+### Histogram
+#### Mu
+```{r}
+mu_data <- tail(mu_list, 10000-n_burnin)
+
+# Convert the mu_data to a data frame
+mu_df <- as.data.frame(mu_data)
+
+mu_data
+# Set the number of bins for the histogram
+num_bins <- 30
+
+# Define a color palette for the histograms
+colors <- c("red", "green", "blue", "orange", "purple")
+
+# Plot the histograms for each column in mu_data using ggplot
+histograms <- lapply(seq_along(mu_df), function(i) {
+  ggplot(mu_df, aes(x = mu_df[, i])) +
+    geom_histogram(bins = num_bins, color = "black", fill = colors[i], alpha = 0.7) +
+    ggtitle(paste0("mu_", i - 1)) +
+    xlab("Value")
+})
+
+# Combine the histograms into a single plot using gridExtra
+combined_plot <- grid.arrange(grobs = histograms, ncol = 3)
+file_path <- file.path("parameters_burnin", "Mu_Parameters_Histogram_Plot.png")
+# Save the plot as a PNG file
+ggsave(file_path, plot = combined_plot, width = 11, height = 8.5, units = "in")
+
+
+```
+
+
+```{r}
+sigma_data <- tail(Sigma_list, 10000-n_burnin)
+
+# Convert the sigma_data to a data frame
+sigma_df <- as.data.frame(sigma_data)
+
+# Set the number of bins for the histogram
+num_bins <- 30
+
+# Define a color palette for the histograms
+colors <- c("red", "green", "blue", "orange", "purple",
+            "brown", "gray", "pink", "black", "magenta",
+            "cyan", "yellow", "darkred", "darkgreen", "darkblue",
+            "darkorange", "blue", "darkgray", "orange", "lightblue",
+            "lightgreen", "lightpink", "lightgray", "purple", "darkred")
+
+# Plot the histograms for each column in sigma_data using ggplot
+histograms <- lapply(seq_along(sigma_df), function(i) {
+  ggplot(sigma_df, aes(x = sigma_df[, i])) +
+    geom_histogram(bins = num_bins, color = "black", fill = colors[i], alpha = 0.7) +
+    ggtitle(paste0("Sigma_", floor((i-1)/5), "_", (i-1)%%5)) +
+    xlab("Value")
+})
+
+# Combine the histograms into a single plot using gridExtra
+combined_plot <- grid.arrange(grobs = histograms, ncol = 5)
+file_path <- file.path("parameters_burnin", "Sigma_Parameters_Histogram_Plot.png")
+# Save the plot as a PNG file
+ggsave(file_path, plot = combined_plot, width = 11, height = 8.5, units = "in")
+```
+
+
+### Auto correlationplot
+
+```{r}
+# Set the lag.max for the acf function
+lag.max <- 2500
+
+# Define a color palette for the plots
+colors <- c("red", "green", "blue", "orange", "purple")
+
+# Plot the autocorrelation plot for each column in mu_df using ggplot
+autocorrelation_plots <- lapply(seq_along(mu_df), function(i) {
+  acf_values <- acf(mu_df[, i], lag.max = lag.max, plot = FALSE)$acf
+  ggplot(data.frame(lag = seq(0, lag.max)), aes(x = lag, y = acf_values)) +
+    geom_hline(yintercept = 0, color = "black") +
+    geom_segment(aes(xend = lag, yend = 0), color = colors[i], alpha = 0.7) +
+    ggtitle(paste0("Autocorrelation Plot for mu_", i - 1)) +
+    xlab("Lag") +
+    ylab("Autocorrelation")
+})
+
+# Combine the plots into a single plot using gridExtra
+grid.arrange(grobs = autocorrelation_plots, ncol = 3)
+
+```
+
+```{r}
+# Set the lag.max for the acf function
+lag.max <- 2500
+
+# Define a color palette for the plots
+colors <- c("red", "green", "blue", "orange", "purple",
+            "brown", "gray", "pink", "black", "magenta",
+            "cyan", "yellow", "darkred", "darkgreen", "darkblue",
+            "darkorange", "blue", "darkgray", "orange", "lightblue",
+            "lightgreen", "lightpink", "lightgray", "purple", "darkred")
+
+# Plot the autocorrelation plot for each column in sigma_df using ggplot
+autocorrelation_plots <- lapply(seq_along(sigma_df), function(i) {
+  acf_values <- acf(sigma_df[, i], lag.max = lag.max, plot = FALSE)$acf
+  ggplot(data.frame(lag = seq(0, lag.max)), aes(x = lag, y = acf_values)) +
+    geom_hline(yintercept = 0, color = "black") +
+    geom_segment(aes(xend = lag, yend = 0), color = colors[i], alpha = 0.7) +
+    ggtitle(paste0("Autocorrelation Plot for Sigma_", i - 1)) +
+    xlab("Lag") +
+    ylab("Autocorrelation")
+})
+
+# Combine the plots into a single plot using gridExtra
+combined_plot <- grid.arrange(grobs = autocorrelation_plots, ncol = 5)
+
+# Construct the file path
+file_path <- file.path("parameters_burnin", "Sigma_Parameters_ACF_Plot.png")
+
+# Save the plot as a PNG file in the "parameters_burnin" directory
+ggsave(file_path, plot = combined_plot, width = 11, height = 8.5, units = "in")
+
+
+```
+
+```{r}
+gamma_data <- tail(gamma_list, 5000)
+
+# Convert the gamma_data to a data frame
+gamma_df <- as.data.frame(gamma_data)
+
+# Set the lag.max for the acf function
+lag.max <- 2500
+
+# Define a color palette for the plots
+colors <- c("red", "green", "blue", "orange", "purple","grey")
+
+# Plot the autocorrelation plot for each column in gamma_df using ggplot
+autocorrelation_plots <- lapply(seq_along(gamma_df), function(i) {
+  acf_values <- acf(gamma_df[, i], lag.max = lag.max, plot = FALSE)$acf
+  ggplot(data.frame(lag = seq(0, lag.max)), aes(x = lag, y = acf_values)) +
+    geom_hline(yintercept = 0, color = "black") +
+    geom_segment(aes(xend = lag, yend = 0), color = colors[i], alpha = 0.7) +
+    ggtitle(paste0("Autocorrelation Plot for gamma_", i - 1)) +
+    xlab("Lag") +
+    ylab("Autocorrelation")
+})
+
+# Combine the plots into a single plot using gridExtra
+combined_plot <- grid.arrange(grobs = autocorrelation_plots, ncol = 2)
+
+# Construct the file path
+file_path <- file.path("parameters_burnin", "Gamma_Parameters_ACF_Plot.png")
+
+# Save the plot as a PNG file in the "parameters_burnin" directory
+ggsave(file_path, plot = combined_plot, width = 11, height = 8.5, units = "in")
+
+```
+
+```{r}
+sigma_data <- tail(sigma_list, 10000-n_burnin)
+
+# Extract the single column of data from the sigma_data list
+sigma_vec <- sigma_data
+
+# Set the lag.max for the acf function
+lag.max <- 2500
+
+# Define a color palette for the plots
+colors <- c("red")
+
+# Calculate the autocorrelation values using acf
+acf_values <- acf(sigma_vec, lag.max = lag.max, plot = FALSE)$acf
+
+# Plot the autocorrelation function using ggplot
+combined_plot <- ggplot(data.frame(lag = seq(0, lag.max)), aes(x = lag, y = acf_values)) +
+  geom_hline(yintercept = 0, color = "black") +
+  geom_segment(aes(xend = lag, yend = 0), color = colors[1], alpha = 0.7) +
+  ggtitle("Autocorrelation Plot for Sigma") +
+  xlab("Lag") +
+  ylab("Autocorrelation")
+
+# Construct the file path
+file_path <- file.path("parameters_burnin", "igma_Parameters_ACF_Plot.png")
+
+# Save the plot as a PNG file in the "parameters_burnin" directory
+ggsave(file_path, plot = combined_plot, width = 11, height = 8.5, units = "in")
+```
+
+```{r}
+# Combine the histograms into a single plot using gridExtra
+library(gridExtra)
+grid.arrange(grobs = histograms, ncol = 5)
+
+sigma_mean <- apply(sigma_data, 2, mean)
+Sigma <- matrix(c(0.7521122437, -0.0154712382, -0.0860070724, 0.0135698462, -0.0060100050,
+                  -0.0154712382, 0.0049778296, -0.0023300326, -0.0013199897, 0.0005661384,
+                  -0.0860070724, -0.0023300326, 0.2705120482, -0.0085330838, -0.0023624339,
+                  0.0135698462, -0.0013199897, -0.0085330838, 0.1287440122, 0.0056527804,
+                  -0.0060100050, 0.0005661384, -0.0023624339, 0.0056527804, 0.0268370062),
+                nrow = 5, ncol = 5, byrow = TRUE)
+sds <- sqrt(diag(Sigma)) 
+rho <- Sigma / (sds %*% t(sds)) 
+
+```
+
+```{r warning=FALSE, echo=FALSE}
+mu_list <- read.csv("./data/mu_list.csv",skip=5000)
+mean_vec_mu <- colMeans(mu_list)
+lower_ci_vec_mu <- apply(mu_list, 2, quantile, 0.05)
+upper_ci_vec_mu <- apply(mu_list, 2, quantile, 0.95)
+
+output_df_mu <- data.frame(
+  Parameter = paste0("mu_", 0:4),
+  Mean = mean_vec_mu,
+  Lower_CI = lower_ci_vec_mu,
+  Upper_CI = upper_ci_vec_mu
+)
+
+colnames(output_df_mu)[-1] <- paste0("mu_mean_id", 0:4)
+
+kable(output_df_mu, format="html")
+
+```
