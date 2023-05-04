@@ -191,107 +191,23 @@ At the same time we compute the acceptance probability, $\alpha$, as the minimum
 \end{itemize}
 
 \textbf{Specific Value}
-\begin{table}[h]
-    \centering
-    \caption{Initial Value Setting}
-    \begin{tabular}{|c|c|}
-        \hline
-        Parameter & Value \\
-        \hline
-        $\boldsymbol{\mu}^\top$ & $(24.25, 0.94, -0.02, -0.24, 0.47)$ \\
-        $\boldsymbol{\gamma}^\top$ & $(-0.01, 0.35, 0.28, 0.37, 0.12, 0.08)$ \\
-        $\boldsymbol{\Sigma}$ & $\begin{pmatrix}
-           0.358 & -0.010 & 0.039 & 0.121 & 0.028 \\
-           -0.01 & 0.001 & -0.003 & -0.005 & 0.002 \\
-           0.039 & -0.003 & 0.043 & 0.034 & -0.019 \\
-           0.121 & -0.005 & 0.034 & 0.069 & 0.003 \\
-           0.028 & 0.002 & -0.019 & 0.003 & 0.017 \\
-        \end{pmatrix}$ \\
-        $\sigma$ & 5.27 \\
-        \hline
-    \end{tabular}
-\end{table}
 
+The specific value we choose can be seen at table\ref{table:initial}
 
 ## Parameter convergence diagnostic
-### Trace plot
-\begin{figure} 
-  \centering 
-  \subfigure[mu]{ 
-    \label{sub1}
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_parameters_time_series_plot.png} 
-  } 
-  \subfigure[Sigma matrix]{ 
-    \label{sub2} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_parameters_time_series_plot.png} 
-  } \\
-  \subfigure[gamma]{ 
-    \label{sub3} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_parameters_time_series_plot.png} 
-  } 
-  \subfigure[sigma]{ 
-    \label{sub4} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_parameters_time_series_plot.png} 
-  } 
-  \label{para1} 
-\end{figure}
 
-Through trace plots, it can be seen that the convergence speed of each parameter is very fast, and after 1000 iterations, all parameters except the intercept of $\boldsymbol\mu$ have converged with fluctuations, while the others have reached convergence.
+Through trace plots, it can be seen that the convergence speed of each parameter is very fast, and after 1000 iterations, all parameters except the intercept of $\mu_0$ have converged with fluctuations, while the others have reached convergence.They are shown in the figure\ref{trace plot}.
 
-\newpage
-
-
+It's worth noting that, through continuous effort and data adjustment, while mu_0 did not strictly converge, it has stabilized within a reasonable range, and its convergence has significantly improved compared to before the adjustments were made. For instance, we scaled the variable season(represent year), which stabilized the range of $\mu_0$ and improved the convergence of the it.
 
 ### Autocorrelation plot
 
-The autocorrelation plots of each parameter for the 500 iterations after burn-in are shown below:
+We have plotted an autocorrelation plot and found that after selecting a burn-in of 5000, the correlation of all parameters in the samples decreases rapidly and eventually stabilizes near zero. This indicates that the chosen burn-in period is very good and the samples used for inference can be assumed to be uncorrelated.
 
-\begin{figure} 
-  \centering 
-  \subfigure[mu]{ 
-    \label{sub1}
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_ACF_Plot.png} 
-  } 
-  \subfigure[Sigma matrix]{ 
-    \label{sub2} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_ACF_Plot.png} 
-  } \\
-  \subfigure[gamma]{ 
-    \label{sub3} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_Parameters_ACF_Plot.png} 
-  } 
-  \subfigure[sigma]{ 
-    \label{sub4} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_Parameters_ACF_Plot.png} 
-  } 
-  \label{para1} 
-\end{figure}
-
-It can be seen from the plots that the autocorrelation of each parameter decreases rapidly and eventually stabilizes near zero.
+It can be seen from the figure \ref{auto plot} that the autocorrelation of each parameter decreases rapidly and eventually stabilizes near zero.
 
 ### Histogram plot
-\begin{figure} 
-  \centering 
-  \subfigure[mu]{ 
-    \label{sub1}
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_Histogram_Plot.png} 
-  } 
-  \subfigure[Sigma matrix]{ 
-    \label{sub2} 
-    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_Histogram_Plot.png} 
-  } 
-  \label{para1} 
-\end{figure}
-
-\newpage
-
-## Hyperparameter Value of choosing
-\textbf{Hyperparameter Value}
-\begin{itemize}
- \item Search window $a=0.1$ 
- \item Burn-in $=8000$ 
- \item Resulting acceptance rate $=0.418$ 
-\end{itemize}
+By examining the histograms, we primarily focused on the numerical distribution of the important parameters, namely $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$. We found that their distributions were normal-like and had no anomalies. Our estimated values fell in the central region of the histograms, indicating a good fit to the normal distribution. They are shown in the figure \ref{historam plot}.Furthermore, we creat CI for $\boldsymbol{\mu}$ at table \ref{table:mu Ci}.
 
 ## Posterior summaries of $\boldsymbol\gamma$
 Posterior summaries and 95% credible intervals of $\boldsymbol\gamma$ is shown in table \ref{table:sum} and table \ref{table:ci}. We are mainly interested in answering two questions. Are there seasonal differences in hurricane wind speeds? Is there evidence to support the claim that hurricane wind speeds have been increasing over the years? The convergence of parameter $\gamma_{year}$ and $\gamma_{active}$ is shown in figure \ref{Year} and figure \ref{Active}. The two parameters converged after MCMC, and $\gamma_{active}$ had a better performance on convergence than $\gamma_{year}$. Thus we could answer the two questions using the 95% credible intervals. Since the credible intervals for both parameters contain zero, the conclusion is that there is no seasonal or yearly difference in hurricane wind speeds.
@@ -324,6 +240,8 @@ Hongjie Liu worked on mathematical derivations and implementing the MCMC algorit
 Jiajun Tao worked on posterior summaries, credible intervals, and diagnostics of $\gamma$, and was also responsible for the corresponding part of the presentation and the report. Here I would like to express my appreciation to my teammates. I had a great experience in working on this project. The hardest part should be the derivation and the algorithm of MCMC, they really did a great job. Nice to work with those guys!
 
 Shaohan Chen worked on revising MCMC R functions, predicting wind speed for each time point of different hurricanes, and evaluating the estimation performance. Meanwhile, he was also responsible for the corresponding part of the presentation slide and report. Many thanks to my nice teammates who were more than excellent in doing their jobs, especially the impressive math calculations and MCMC algorithm implementation done by Hongjie and Zijian. Special thanks to Xicheng, who helped deliver the "task 4" presentation for me, when I was still in recovery of my left foot wound and unable to attend our presentation in person. Lastly, I would like to give the best credit to our team again for everybody's great contribution and devotion to the class and projects. Looking forward to our next cooperation.
+
+Zijian Xu worked on analysis of the MCMC algorithm, including reviewing the algorithm, writing functions to check for errors, visualizing results, conducting diagnostic analysis, and evaluating and improving starting values. Additionally, I wrote the front part of section 3 of the report, which focused on the MCMC algorithm, and contributed to delivering the presentation for task 2.I would like to express my utmost gratitude to my team members who were always available and willing to contribute their efforts to the project.I would like to say that everyone has been humble, but in reality, a lot of our work cannot be quantified, and in my opinion, the amount of work we have accomplished is tremendous. For example, writing the report entirely in LaTeX formulas, ensuring the report was well-organized and complete, and continuously formatting and adjusting it. Moreover, each team member had to adjust their sections after every change in the project's direction, which shows that every member was indispensable to the project's success. The project is a result of everyone's hard work and dedication.
 
 \clearpage
 
@@ -390,6 +308,44 @@ ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
 \end{tabular}
 \end{table}
 
+\begin{table}[h]
+    \centering
+    \caption{Initial Value Setting}
+    \label{table:initial}
+    \begin{tabular}{|c|c|}
+        \hline
+        Parameter & Value \\
+        \hline
+        $\boldsymbol{\mu}^\top$ & $(2.91, 0.94, -0.03, -0.24, 0.47)$ \\
+        $\boldsymbol{\gamma}^\top$ & $(-0.01, 0.35, 0.28, 0.37, 0.12, 0.08)$ \\
+        $\boldsymbol{\Sigma}$ & $\begin{pmatrix}
+           0.390 & -0.011 & 0.021 & 0.140 & 0.031 \\
+          -0.011 & 0.001 & -0.002 & -0.005 & 0.000 \\
+           0.021 & -0.002 & 0.034 & 0.026 & -0.019 \\
+           0.140 & -0.005 & 0.026 & 0.074 & 0.003 \\
+           0.031 & 0.000 & -0.019 & 0.003 & 0.018 \\
+        \end{pmatrix}$ \\
+        $\sigma$ & 5.27 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+\caption{Summary statistics for mu}
+\label{table:mu Ci}
+\begin{tabular}{lccc}
+\hline
+Parameter & mu\_mean\ &   lower bound &   upper bound \\ \hline
+mu\_0     & 4.5091968     & 3.8894989     & 5.0617140     \\
+mu\_1     & 0.9040681     & 0.8397420     & 0.9679912     \\
+mu\_2     & -0.0488009    & -0.2472724    & 0.1533209     \\
+mu\_3     & -0.4617278    & -0.5988835    & -0.3236038    \\
+mu\_4     & 0.4714829     & 0.3978996     & 0.5459744     \\ \hline
+\end{tabular}
+\end{table}
+
 \begin{figure}[ht]
   \centering
   \includegraphics[width=0.8\textwidth]{jacky_part_pic/year.png}
@@ -444,6 +400,61 @@ ALEX.2004 & 2004 & 5.4552 & 0.9539 \\ \hline
   \includegraphics[width=0.8\textwidth]{predic_plots/months1.png}
   \caption{RMSE under different months}
   \label{RMSE under different months}
+\end{figure}
+
+\begin{figure} 
+  \centering 
+  \subfigure[mu]{ 
+    \label{sub1}
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_parameters_time_series_plot.png} 
+  } 
+  \subfigure[Sigma matrix]{ 
+    \label{sub2} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_parameters_time_series_plot.png} 
+  } \\
+  \subfigure[gamma]{ 
+    \label{sub3} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_parameters_time_series_plot.png} 
+  } 
+  \subfigure[sigma]{ 
+    \label{sub4} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_parameters_time_series_plot.png} 
+  } 
+  \label{trace plot} 
+\end{figure}
+
+\begin{figure} 
+  \centering 
+  \subfigure[mu]{ 
+    \label{sub1}
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_ACF_Plot.png} 
+  } 
+  \subfigure[Sigma matrix]{ 
+    \label{sub2} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_ACF_Plot.png} 
+  } \\
+  \subfigure[gamma]{ 
+    \label{sub3} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Gamma_Parameters_ACF_Plot.png} 
+  } 
+  \subfigure[sigma]{ 
+    \label{sub4} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/igma_Parameters_ACF_Plot.png} 
+  } 
+  \label{auto plot} 
+\end{figure}
+
+\begin{figure} 
+  \centering 
+  \subfigure[mu]{ 
+    \label{sub1}
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Mu_Parameters_Histogram_Plot.png} 
+  } 
+  \subfigure[Sigma matrix]{ 
+    \label{sub2} 
+    \includegraphics[width=2.0in, height = 1.4in]{parameters_burnin/Sigma_Parameters_Histogram_Plot.png} 
+  } 
+  \label{historam plot} 
 \end{figure}
 
 \clearpage
