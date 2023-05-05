@@ -210,6 +210,14 @@ It can be seen from the figure \ref{auto plot} that the autocorrelation of each 
 ### Histogram plot
 By examining the histograms, we primarily focused on the numerical distribution of the important parameters, namely $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$. We found that their distributions were normal-like and had no anomalies. Our estimated values fell in the central region of the histograms, indicating a good fit to the normal distribution. They are shown in the figure \ref{historam plot}.Furthermore, we creat CI for $\boldsymbol{\mu}$ at table \ref{table:mu Ci}.
 
+## Hyperparameter Value of choosing
+\textbf{Hyperparameter Value}
+\begin{itemize}
+ \item Search window $a=0.1$(chosen such that acceptance rate of proposed sample is around 0.4) 
+ \item Resulting acceptance rate $=0.418$
+ \item Burn-in $=8000$ 
+\end{itemize}
+
 ## Posterior summaries of $\boldsymbol\gamma$
 Posterior summaries and 95% credible intervals of $\boldsymbol\gamma$ is shown in table \ref{table:sum} and table \ref{table:ci}. We are mainly interested in answering two questions. Are there seasonal differences in hurricane wind speeds? Is there evidence to support the claim that hurricane wind speeds have been increasing over the years? The convergence of parameter $\gamma_{year}$ and $\gamma_{active}$ is shown in figure \ref{Year} and figure \ref{Active}. The two parameters converged after MCMC, and $\gamma_{active}$ had a better performance on convergence than $\gamma_{year}$. Thus we could answer the two questions using the 95% credible intervals. Since the credible intervals for both parameters contain zero, the conclusion is that there is no seasonal or yearly difference in hurricane wind speeds.
 
