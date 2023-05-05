@@ -215,7 +215,7 @@ By examining the histograms, we primarily focused on the numerical distribution 
 \begin{itemize}
  \item Search window $a=0.1$(chosen such that acceptance rate of proposed sample is around 0.4) 
  \item Resulting acceptance rate $=0.418$
- \item Burn-in $=8000$ 
+ \item Burn-in $=5000$ 
 \end{itemize}
 
 ## Posterior summaries of $\boldsymbol\gamma$
